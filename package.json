@@ -1,0 +1,14 @@
+// package.json (для Vercel, опционально)
+{
+  "name": "currency-trading-game-ru",
+  "version": "1.0.0",
+  "description": "Telegram Mini-App: трейдинг валют (USD, EUR, CNY)",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}
