@@ -36,14 +36,17 @@
             <!-- Блок USD (база) -->
             <div class="currency-card base">
                 <h3><span class="currency-emoji" data-currency="USD">💵</span> USD</h3>
+                <p class="rate">Курс: 1.0 USD</p>
                 <p class="balance">Баланс: <span id="usd-balance">100.00</span></p>
             </div>
 
             <!-- Блок EUR -->
             <div class="currency-card">
                 <h3><span class="currency-emoji" data-currency="EUR">💶</span> EUR</h3>
-                <p class="rate">Курс: <span id="eur-rate">1.1734</span> USD</p>
-                <input type="number" id="eur-amount" placeholder="Сумма в USD">
+                <p class="rate">Курс: <span id="eur-rate">1.17</span> USD</p>
+                <p class="balance">Баланс: <span id="eur-balance">0.00</span></p>
+                <input type="number" id="eur-amount" placeholder="Сумма в USD" oninput="updateHint('EUR')">
+                <p id="eur-hint"></p>
                 <div class="buttons">
                     <button onclick="buy('EUR')">Купить</button>
                     <button onclick="sell('EUR')">Продать</button>
@@ -53,8 +56,10 @@
             <!-- Блок CNY -->
             <div class="currency-card">
                 <h3><span class="currency-emoji" data-currency="CNY">💴</span> CNY</h3>
-                <p class="rate">Курс: <span id="cny-rate">6.9823</span> USD</p>
-                <input type="number" id="cny-amount" placeholder="Сумма в USD">
+                <p class="rate">Курс: <span id="cny-rate">7.14</span> USD</p>
+                <p class="balance">Баланс: <span id="cny-balance">0.00</span></p>
+                <input type="number" id="cny-amount" placeholder="Сумма в USD" oninput="updateHint('CNY')">
+                <p id="cny-hint"></p>
                 <div class="buttons">
                     <button onclick="buy('CNY')">Купить</button>
                     <button onclick="sell('CNY')">Продать</button>
