@@ -10,9 +10,12 @@ let balances = {
 };
 
 let rates = {
-    EUR: 1.2,  // USD per EUR
-    CNY: 7.1   // CNY per USD
+    midEUR: 1.2,
+    midCNY: 7.1
 };
+
+const spreadEUR = 0.02;
+const spreadCNY = 0.1;
 
 // Загрузка сохранения
 function loadSave() {
@@ -52,9 +55,16 @@ const cnyNegative = ["Юань под давлением", "Замедление
 
 // Обновление отображения
 function updateDisplay() {
+    const bidEUR = rates.midEUR - spreadEUR / 2;
+    const askEUR = rates.midEUR + spreadEUR / 2;
+    const bidCNY = rates.midCNY - spreadCNY / 2;
+    const askCNY = rates.midCNY + spreadCNY / 2;
+
     document.getElementById('usd-balance').textContent = balances.USD.toFixed(2);
-    document.getElementById('eur-rate').textContent = rates.EUR.toFixed(1);
-    document.getElementById('cny-rate').textContent = rates.CNY.toFixed(1);
+    document.getElementById('eur-bid').textContent = bidEUR.toFixed(1);
+    document.getElementById('eur-ask').textContent = askEUR.toFixed(1);
+    document.getElementById('cny-bid').textContent = bidCNY.toFixed(1);
+    document.getElementById('cny-ask').textContent = askCNY.toFixed(1);
     document.getElementById('eur-balance').textContent = balances.EUR.toFixed(2);
     document.getElementById('cny-balance').textContent = balances.CNY.toFixed(2);
     document.getElementById('total-usd').textContent = `${balances.USD.toFixed(2)} USD`;
@@ -78,15 +88,20 @@ function updateHint(currency) {
         return;
     }
 
+    const bidEUR = rates.midEUR - spreadEUR / 2;
+    const askEUR = rates.midEUR + spreadEUR / 2;
+    const bidCNY = rates.midCNY - spreadCNY / 2;
+    const askCNY = rates.midCNY + spreadCNY / 2;
+
     let buyText, sellText;
     if (currency === 'EUR') {
-        const buyEur = (amount / rates.EUR).toFixed(2);
-        const sellEur = (amount / rates.EUR).toFixed(2);
+        const buyEur = (amount / askEUR).toFixed(2);
+        const sellEur = (amount / bidEUR).toFixed(2);
         buyText = `Купите ${buyEur} EUR`;
         sellText = `Продайте ${sellEur} EUR`;
     } else if (currency === 'CNY') {
-        const buyCny = (amount * rates.CNY).toFixed(2);
-        const sellCny = (amount * rates.CNY).toFixed(2);
+        const buyCny = (amount * bidCNY).toFixed(2);
+        const sellCny = (amount * askCNY).toFixed(2);
         buyText = `Купите ${buyCny} CNY`;
         sellText = `Продайте ${sellCny} CNY`;
     }
@@ -110,14 +125,14 @@ function showToast(message, isPositive = true) {
 
 // Случайные флуктуации (постоянно, каждые 5 сек)
 function fluctuateRates() {
-    const noiseEUR = (Math.random() - 0.5) * 0.1; // Сильный шум
-    const noiseCNY = (Math.random() - 0.5) * 1.0;
+    const noiseEUR = (Math.random() - 0.5) * 0.5; // Сильный шум для EUR
+    const noiseCNY = (Math.random() - 0.5) * 5.0; // Ещё сильнее для CNY
 
-    rates.EUR += noiseEUR;
-    rates.CNY += noiseCNY;
+    rates.midEUR += noiseEUR;
+    rates.midCNY += noiseCNY;
 
-    rates.EUR = Math.max(0.5, Math.min(10.0, rates.EUR));
-    rates.CNY = Math.max(5.0, Math.min(100.0, rates.CNY));
+    rates.midEUR = Math.max(0.1, Math.min(100.0, rates.midEUR));
+    rates.midCNY = Math.max(1.0, Math.min(500.0, rates.midCNY));
 
     updateDisplay();
     saveGame();
@@ -130,47 +145,47 @@ function newsImpact() {
 
     if (rand < 0.4) {
         news = positiveNews[Math.floor(Math.random() * positiveNews.length)];
-        affectEUR = 0.2;
-        affectCNY = 2.0;
+        affectEUR = Math.random() * 1.0 + 0.5; // Быстрый рост
+        affectCNY = Math.random() * 10.0 + 5.0;
     } else if (rand < 0.8) {
         news = negativeNews[Math.floor(Math.random() * negativeNews.length)];
-        affectEUR = -0.2;
-        affectCNY = -2.0;
+        affectEUR = - (Math.random() * 1.0 + 0.5);
+        affectCNY = - (Math.random() * 10.0 + 5.0);
         isPositive = false;
     } else if (rand < 0.9) {
         if (Math.random() > 0.5) {
             news = eurPositive[Math.floor(Math.random() * eurPositive.length)];
-            affectEUR = 0.3;
+            affectEUR = Math.random() * 1.5 + 0.5;
         } else {
             news = eurNegative[Math.floor(Math.random() * eurNegative.length)];
-            affectEUR = -0.3;
+            affectEUR = - (Math.random() * 1.5 + 0.5);
             isPositive = false;
         }
-        affectCNY = affectEUR * (Math.random() * 0.4 - 0.2);
+        affectCNY = affectEUR * (Math.random() * 2.0 - 1.0);
     } else {
         if (Math.random() > 0.5) {
             news = cnyPositive[Math.floor(Math.random() * cnyPositive.length)];
-            affectCNY = 3.0;
+            affectCNY = Math.random() * 15.0 + 5.0;
         } else {
             news = cnyNegative[Math.floor(Math.random() * cnyNegative.length)];
-            affectCNY = -3.0;
+            affectCNY = - (Math.random() * 15.0 + 5.0);
             isPositive = false;
         }
-        affectEUR = affectCNY * (Math.random() * 0.3 - 0.15);
+        affectEUR = affectCNY * (Math.random() * 0.5 - 0.25);
     }
 
-    rates.EUR += affectEUR;
-    rates.CNY += affectCNY;
+    rates.midEUR += affectEUR;
+    rates.midCNY += affectCNY;
 
-    rates.EUR = Math.max(0.5, Math.min(10.0, rates.EUR));
-    rates.CNY = Math.max(5.0, Math.min(100.0, rates.CNY));
+    rates.midEUR = Math.max(0.1, Math.min(100.0, rates.midEUR));
+    rates.midCNY = Math.max(1.0, Math.min(500.0, rates.midCNY));
 
     showToast(news, isPositive);
     updateDisplay();
     saveGame();
 }
 
-// Покупка/Продажа
+// Покупка
 function buy(currency) {
     const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
     const amount = parseFloat(amountInput.value);
@@ -180,11 +195,16 @@ function buy(currency) {
         return;
     }
 
+    const bidEUR = rates.midEUR - spreadEUR / 2;
+    const askEUR = rates.midEUR + spreadEUR / 2;
+    const bidCNY = rates.midCNY - spreadCNY / 2;
+    const askCNY = rates.midCNY + spreadCNY / 2;
+
     if (currency === 'EUR') {
-        balances.EUR += amount / rates.EUR;
+        balances.EUR += amount / askEUR;
         balances.USD -= amount;
     } else if (currency === 'CNY') {
-        balances.CNY += amount * rates.CNY;
+        balances.CNY += amount * bidCNY;
         balances.USD -= amount;
     }
 
@@ -194,6 +214,7 @@ function buy(currency) {
     showToast(`Куплено ${currency} на ${amount.toFixed(2)} USD`);
 }
 
+// Продажа
 function sell(currency) {
     const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
     const amount = parseFloat(amountInput.value);
@@ -203,9 +224,14 @@ function sell(currency) {
         return;
     }
 
+    const bidEUR = rates.midEUR - spreadEUR / 2;
+    const askEUR = rates.midEUR + spreadEUR / 2;
+    const bidCNY = rates.midCNY - spreadCNY / 2;
+    const askCNY = rates.midCNY + spreadCNY / 2;
+
     let toSell;
     if (currency === 'EUR') {
-        toSell = amount / rates.EUR;
+        toSell = amount / bidEUR;
         if (toSell > balances.EUR) {
             showToast("Недостаточно EUR", false);
             return;
@@ -213,7 +239,7 @@ function sell(currency) {
         balances.EUR -= toSell;
         balances.USD += amount;
     } else if (currency === 'CNY') {
-        toSell = amount * rates.CNY;
+        toSell = amount * askCNY;
         if (toSell > balances.CNY) {
             showToast("Недостаточно CNY", false);
             return;
@@ -226,6 +252,31 @@ function sell(currency) {
     updateDisplay();
     saveGame();
     showToast(`Продано ${currency} за ${amount.toFixed(2)} USD`);
+}
+
+// Продать все
+function sellAll(currency) {
+    if (balances[currency] <= 0) {
+        showToast(`Нет ${currency} для продажи`, false);
+        return;
+    }
+
+    const bidEUR = rates.midEUR - spreadEUR / 2;
+    const askCNY = rates.midCNY + spreadCNY / 2;
+
+    let usdGain;
+    if (currency === 'EUR') {
+        usdGain = balances.EUR * bidEUR;
+    } else if (currency === 'CNY') {
+        usdGain = balances.CNY / askCNY;
+    }
+
+    balances.USD += usdGain;
+    balances[currency] = 0;
+
+    updateDisplay();
+    saveGame();
+    showToast(`Продана вся ${currency} за ${usdGain.toFixed(2)} USD`);
 }
 
 // Модальное окно активов
