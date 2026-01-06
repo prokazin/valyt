@@ -10,8 +10,8 @@ let balances = {
 };
 
 let rates = {
-    EUR: 1.1715,
-    CNY: 6.9776
+    EUR: 1.1734,
+    CNY: 6.9823
 };
 
 // Загрузка сохранения
@@ -176,15 +176,12 @@ function sell(currency) {
         balances.EUR -= toSell;
         balances.USD += amount;
     } else if (currency === 'CNY') {
-        toSell = amount / rates.CNY; // Исправлено: amount в USD -> CNY to sell = amount / rate (поскольку rate = CNY per USD? Wait, no: to get CNY from USD amount, but sell: input USD equivalent, so CNY = amount * rate? Wait, previous was wrong.
-        Wait, correction: for sell, input is USD to receive, so CNY to sell = amount * rate? No.
-        Standard: rate CNY/USD = how many CNY per 1 USD.
-        To buy: spend USD, get USD * rate CNY.
-        To sell: sell CNY, get USD = CNY_sold / rate.
-        So input amount in USD (to receive), then CNY_sold = amount * rate.
-        Yes, previous was correct: cnyToSell = amount * rates.CNY;
-        if (cnyToSell > balances.CNY)
-        balances.CNY -= cnyToSell;
+        toSell = amount * rates.CNY;
+        if (toSell > balances.CNY) {
+            showToast("Недостаточно CNY", false);
+            return;
+        }
+        balances.CNY -= toSell;
         balances.USD += amount;
     }
 
