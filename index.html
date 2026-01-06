@@ -1,0 +1,50 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Трейдинг валют</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Трейдинг валют</h1>
+        
+        <div class="balance">
+            <h2>Ваши активы</h2>
+            <p>USD: <span id="usd-balance">100.00</span></p>
+            <p>EUR: <span id="eur-balance">0.00</span></p>
+            <p>CNY: <span id="cny-balance">0.00</span></p>
+        </div>
+        
+        <div class="rates">
+            <h2>Текущие курсы</h2>
+            <p>EUR/USD: <span id="eur-rate">1.10</span></p>
+            <p>CNY/USD: <span id="cny-rate">7.00</span></p>
+        </div>
+        
+        <div class="news" id="news-feed">
+            <h2>Новости</h2>
+        </div>
+        
+        <div class="actions">
+            <h2>Торговля EUR</h2>
+            <input type="number" id="eur-amount" placeholder="Сумма в USD">
+            <div class="buttons">
+                <button onclick="buy('EUR')">Купить EUR</button>
+                <button onclick="sell('EUR')">Продать EUR</button>
+            </div>
+            
+            <h2>Торговля CNY</h2>
+            <input type="number" id="cny-amount" placeholder="Сумма в USD">
+            <div class="buttons">
+                <button onclick="buy('CNY')">Купить CNY</button>
+                <button onclick="sell('CNY')">Продать CNY</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
