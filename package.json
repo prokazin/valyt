@@ -1,8 +1,8 @@
 // package.json
 {
   "name": "currency-trading-game-ru",
-  "version": "1.3.0",
-  "description": "Telegram Mini-App: трейдинг USD/EUR/CNY с сохранением, реальными курсами и эмодзи",
+  "version": "1.4.0",
+  "description": "Telegram Mini-App: трейдинг USD/EUR/CNY с постоянными изменениями и новостями",
   "main": "index.html",
   "scripts": {
     "start": "serve ."
