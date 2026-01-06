@@ -187,6 +187,12 @@ h1 {
     text-align: center;
 }
 
+.currency-card #eur-hint, .currency-card #cny-hint {
+    font-size: 14px;
+    color: #666;
+    margin: 4px 0 12px;
+}
+
 .buttons {
     display: flex;
     gap: 12px;
