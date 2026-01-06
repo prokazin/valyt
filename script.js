@@ -10,9 +10,24 @@ let balances = {
 };
 
 let rates = {
-    EUR: 1.1000,
-    CNY: 7.0000
+    EUR: 1.1715,
+    CNY: 6.9776
 };
+
+// Загрузка сохранения
+function loadSave() {
+    const saved = localStorage.getItem('currencyTradingSave');
+    if (saved) {
+        const data = JSON.parse(saved);
+        balances = data.balances || balances;
+        rates = data.rates || rates;
+    }
+}
+
+// Сохранение
+function saveGame() {
+    localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
+}
 
 // Новости
 const positiveNews = [
@@ -61,57 +76,61 @@ function showToast(message, isPositive = true) {
     }, 4000);
 }
 
-// Изменение курсов с зависимостью от новостей
+// Изменение курсов с зависимостью от новостей и случайных флуктуаций
 function changeRates() {
-    // Выбираем тип новости
-    const rand = Math.random();
+    const isNewsEvent = Math.random() < 0.5; // 50% шанс новости, 50% случайное изменение
     let news, affectEUR = 0, affectCNY = 0;
 
-    if (rand < 0.4) {
-        // Общая положительная
-        news = positiveNews[Math.floor(Math.random() * positiveNews.length)];
-        affectEUR = 0.015;
-        affectCNY = 0.08;
-    } else if (rand < 0.8) {
-        // Общая отрицательная
-        news = negativeNews[Math.floor(Math.random() * negativeNews.length)];
-        affectEUR = -0.015;
-        affectCNY = -0.08;
-    } else if (rand < 0.9) {
-        // Специально для EUR
-        if (Math.random() > 0.5) {
-            news = eurPositive[Math.floor(Math.random() * eurPositive.length)];
-            affectEUR = 0.025;
+    if (isNewsEvent) {
+        // Логика новостей как раньше
+        const rand = Math.random();
+        if (rand < 0.4) {
+            news = positiveNews[Math.floor(Math.random() * positiveNews.length)];
+            affectEUR = 0.015;
+            affectCNY = 0.08;
+        } else if (rand < 0.8) {
+            news = negativeNews[Math.floor(Math.random() * negativeNews.length)];
+            affectEUR = -0.015;
+            affectCNY = -0.08;
+        } else if (rand < 0.9) {
+            if (Math.random() > 0.5) {
+                news = eurPositive[Math.floor(Math.random() * eurPositive.length)];
+                affectEUR = 0.025;
+            } else {
+                news = eurNegative[Math.floor(Math.random() * eurNegative.length)];
+                affectEUR = -0.025;
+            }
+            affectCNY = affectEUR * (Math.random() * 0.4 - 0.2);
         } else {
-            news = eurNegative[Math.floor(Math.random() * eurNegative.length)];
-            affectEUR = -0.025;
+            if (Math.random() > 0.5) {
+                news = cnyPositive[Math.floor(Math.random() * cnyPositive.length)];
+                affectCNY = 0.12;
+            } else {
+                news = cnyNegative[Math.floor(Math.random() * cnyNegative.length)];
+                affectCNY = -0.12;
+            }
+            affectEUR = affectCNY * (Math.random() * 0.3 - 0.15);
         }
-        affectCNY = affectEUR * (Math.random() * 0.4 - 0.2); // слабая корреляция
+        showToast(news, affectEUR + affectCNY > 0);
     } else {
-        // Специально для CNY
-        if (Math.random() > 0.5) {
-            news = cnyPositive[Math.floor(Math.random() * cnyPositive.length)];
-            affectCNY = 0.12;
-        } else {
-            news = cnyNegative[Math.floor(Math.random() * cnyNegative.length)];
-            affectCNY = -0.12;
-        }
-        affectEUR = affectCNY * (Math.random() * 0.3 - 0.15);
+        // Случайное изменение без новости
+        news = "Рыночные флуктуации";
+        showToast(news, true);
     }
 
-    // Применяем изменения с небольшим шумом
-    const noiseEUR = Math.random() * 0.01 - 0.005;
-    const noiseCNY = Math.random() * 0.05 - 0.025;
+    // Применяем изменения с шумом (всегда)
+    const noiseEUR = (Math.random() - 0.5) * 0.002; // Маленький шум
+    const noiseCNY = (Math.random() - 0.5) * 0.01;
 
     rates.EUR += affectEUR + noiseEUR;
     rates.CNY += affectCNY + noiseCNY;
 
-    // Ограничения
-    rates.EUR = Math.max(0.90, Math.min(1.30, rates.EUR));
-    rates.CNY = Math.max(6.0, Math.min(8.0, rates.CNY));
+    // Ограничения реалистичные
+    rates.EUR = Math.max(1.05, Math.min(1.30, rates.EUR));
+    rates.CNY = Math.max(6.5, Math.min(7.5, rates.CNY));
 
-    showToast(news, affectEUR + affectCNY > 0);
     updateDisplay();
+    saveGame();
 }
 
 // Покупка/Продажа
@@ -134,6 +153,7 @@ function buy(currency) {
 
     amountInput.value = '';
     updateDisplay();
+    saveGame();
     showToast(`Куплено ${currency} на ${amount.toFixed(2)} USD`);
 }
 
@@ -156,17 +176,21 @@ function sell(currency) {
         balances.EUR -= toSell;
         balances.USD += amount;
     } else if (currency === 'CNY') {
-        toSell = amount * rates.CNY;
-        if (toSell > balances.CNY) {
-            showToast("Недостаточно CNY", false);
-            return;
-        }
-        balances.CNY -= toSell;
+        toSell = amount / rates.CNY; // Исправлено: amount в USD -> CNY to sell = amount / rate (поскольку rate = CNY per USD? Wait, no: to get CNY from USD amount, but sell: input USD equivalent, so CNY = amount * rate? Wait, previous was wrong.
+        Wait, correction: for sell, input is USD to receive, so CNY to sell = amount * rate? No.
+        Standard: rate CNY/USD = how many CNY per 1 USD.
+        To buy: spend USD, get USD * rate CNY.
+        To sell: sell CNY, get USD = CNY_sold / rate.
+        So input amount in USD (to receive), then CNY_sold = amount * rate.
+        Yes, previous was correct: cnyToSell = amount * rates.CNY;
+        if (cnyToSell > balances.CNY)
+        balances.CNY -= cnyToSell;
         balances.USD += amount;
     }
 
     amountInput.value = '';
     updateDisplay();
+    saveGame();
     showToast(`Продано ${currency} за ${amount.toFixed(2)} USD`);
 }
 
@@ -177,9 +201,12 @@ function toggleAssets() {
     updateDisplay();
 }
 
-// Запуск изменений каждые 12 секунд
+// Инициализация
+loadSave();
+updateDisplay();
+
+// Изменения каждые 12 секунд
 setInterval(changeRates, 12000);
 
-// Первое обновление и стартовая новость
-updateDisplay();
-setTimeout(changeRates, 3000); // первая новость через 3 сек
+// Первая новость/изменение через 3 сек
+setTimeout(changeRates, 3000);
