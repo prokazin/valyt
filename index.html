@@ -10,41 +10,60 @@
 </head>
 <body>
     <div class="container">
-        <h1>Трейдинг валют</h1>
-        
-        <div class="balance">
-            <h2>Ваши активы</h2>
-            <p>USD: <span id="usd-balance">100.00</span></p>
-            <p>EUR: <span id="eur-balance">0.00</span></p>
-            <p>CNY: <span id="cny-balance">0.00</span></p>
-        </div>
-        
-        <div class="rates">
-            <h2>Текущие курсы</h2>
-            <p>EUR/USD: <span id="eur-rate">1.10</span></p>
-            <p>CNY/USD: <span id="cny-rate">7.00</span></p>
-        </div>
-        
-        <div class="news" id="news-feed">
-            <h2>Новости</h2>
-        </div>
-        
-        <div class="actions">
-            <h2>Торговля EUR</h2>
-            <input type="number" id="eur-amount" placeholder="Сумма в USD">
-            <div class="buttons">
-                <button onclick="buy('EUR')">Купить EUR</button>
-                <button onclick="sell('EUR')">Продать EUR</button>
+        <header>
+            <h1>Трейдинг валют</h1>
+            <div class="wallet-button" onclick="toggleAssets()">
+                <span>Кошелёк</span>
+                <span id="total-usd">100.00 USD</span>
             </div>
-            
-            <h2>Торговля CNY</h2>
-            <input type="number" id="cny-amount" placeholder="Сумма в USD">
-            <div class="buttons">
-                <button onclick="buy('CNY')">Купить CNY</button>
-                <button onclick="sell('CNY')">Продать CNY</button>
+        </header>
+
+        <!-- Модальное окно активов -->
+        <div id="assets-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Ваши активы</h2>
+                <p>USD: <span id="modal-usd">100.00</span></p>
+                <p>EUR: <span id="modal-eur">0.00</span></p>
+                <p>CNY: <span id="modal-cny">0.00</span></p>
+                <button onclick="toggleAssets()" class="close-btn">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Уведомление (toast) -->
+        <div id="toast" class="toast hidden"></div>
+
+        <div class="trading-section">
+            <!-- Блок USD (база) -->
+            <div class="currency-card base">
+                <h3>USD</h3>
+                <p class="rate">Базовая валюта</p>
+                <p class="balance">Баланс: <span id="usd-balance">100.00</span></p>
+            </div>
+
+            <!-- Блок EUR -->
+            <div class="currency-card">
+                <h3>EUR</h3>
+                <p class="rate">Курс: <span id="eur-rate">1.1000</span> USD</p>
+                <input type="number" id="eur-amount" placeholder="Сумма в USD">
+                <div class="buttons">
+                    <button onclick="buy('EUR')">Купить</button>
+                    <button onclick="sell('EUR')">Продать</button>
+                </div>
+            </div>
+
+            <!-- Блок CNY -->
+            <div class="currency-card">
+                <h3>CNY</h3>
+                <p class="rate">Курс: <span id="cny-rate">7.0000</span> USD</p>
+                <input type="number" id="cny-amount" placeholder="Сумма в USD">
+                <div class="buttons">
+                    <button onclick="buy('CNY')">Купить</button>
+                    <button onclick="sell('CNY')">Продать</button>
+                </div>
             </div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
