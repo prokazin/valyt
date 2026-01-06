@@ -10,8 +10,8 @@ let balances = {
 };
 
 let rates = {
-    EUR: 1.1734,
-    CNY: 6.9823
+    EUR: 1.2,  // USD per EUR, rounded to tenths
+    CNY: 7.1   // CNY per USD, rounded to tenths
 };
 
 // Загрузка сохранения
@@ -53,13 +53,45 @@ const cnyNegative = ["Юань под давлением", "Замедление
 // Обновление отображения
 function updateDisplay() {
     document.getElementById('usd-balance').textContent = balances.USD.toFixed(2);
-    document.getElementById('eur-rate').textContent = rates.EUR.toFixed(4);
-    document.getElementById('cny-rate').textContent = rates.CNY.toFixed(4);
+    document.getElementById('eur-rate').textContent = rates.EUR.toFixed(1);
+    document.getElementById('cny-rate').textContent = rates.CNY.toFixed(1);
+    document.getElementById('eur-balance').textContent = balances.EUR.toFixed(2);
+    document.getElementById('cny-balance').textContent = balances.CNY.toFixed(2);
     document.getElementById('total-usd').textContent = `${balances.USD.toFixed(2)} USD`;
 
     document.getElementById('modal-usd').textContent = balances.USD.toFixed(2);
-    document.getElementById('modal-eur').textContent = balances.EUR.toFixed(4);
+    document.getElementById('modal-eur').textContent = balances.EUR.toFixed(2);
     document.getElementById('modal-cny').textContent = balances.CNY.toFixed(2);
+
+    updateHint('EUR');
+    updateHint('CNY');
+}
+
+// Обновление подсказки
+function updateHint(currency) {
+    const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
+    const hint = document.getElementById(`${currency.toLowerCase()}-hint`);
+    const amount = parseFloat(amountInput.value);
+
+    if (isNaN(amount) || amount <= 0) {
+        hint.textContent = '';
+        return;
+    }
+
+    let buyText, sellText;
+    if (currency === 'EUR') {
+        const buyEur = (amount / rates.EUR).toFixed(2);
+        const sellEur = (amount / rates.EUR).toFixed(2);
+        buyText = `Купите ${buyEur} EUR`;
+        sellText = `Продайте ${sellEur} EUR`;
+    } else if (currency === 'CNY') {
+        const buyCny = (amount * rates.CNY).toFixed(2);
+        const sellCny = (amount * rates.CNY).toFixed(2);
+        buyText = `Купите ${buyCny} CNY`;
+        sellText = `Продайте ${sellCny} CNY`;
+    }
+
+    hint.textContent = `${buyText} | ${sellText}`;
 }
 
 // Показ уведомления на 4 секунды
@@ -76,58 +108,36 @@ function showToast(message, isPositive = true) {
     }, 4000);
 }
 
-// Изменение курсов с зависимостью от новостей и случайных флуктуаций
-function changeRates() {
-    const isNewsEvent = Math.random() < 0.5; // 50% шанс новости, 50% случайное изменение
-    let news, affectEUR = 0, affectCNY = 0;
-
-    if (isNewsEvent) {
-        // Логика новостей как раньше
-        const rand = Math.random();
-        if (rand < 0.4) {
-            news = positiveNews[Math.floor(Math.random() * positiveNews.length)];
-            affectEUR = 0.015;
-            affectCNY = 0.08;
-        } else if (rand < 0.8) {
-            news = negativeNews[Math.floor(Math.random() * negativeNews.length)];
-            affectEUR = -0.015;
-            affectCNY = -0.08;
-        } else if (rand < 0.9) {
-            if (Math.random() > 0.5) {
-                news = eurPositive[Math.floor(Math.random() * eurPositive.length)];
-                affectEUR = 0.025;
-            } else {
-                news = eurNegative[Math.floor(Math.random() * eurNegative.length)];
-                affectEUR = -0.025;
-            }
-            affectCNY = affectEUR * (Math.random() * 0.4 - 0.2);
-        } else {
-            if (Math.random() > 0.5) {
-                news = cnyPositive[Math.floor(Math.random() * cnyPositive.length)];
-                affectCNY = 0.12;
-            } else {
-                news = cnyNegative[Math.floor(Math.random() * cnyNegative.length)];
-                affectCNY = -0.12;
-            }
-            affectEUR = affectCNY * (Math.random() * 0.3 - 0.15);
-        }
-        showToast(news, affectEUR + affectCNY > 0);
-    } else {
-        // Случайное изменение без новости
-        news = "Рыночные флуктуации";
-        showToast(news, true);
-    }
-
-    // Применяем изменения с шумом (всегда)
-    const noiseEUR = (Math.random() - 0.5) * 0.002; // Маленький шум
+// Случайные флуктуации (постоянно, каждые 5 сек)
+function fluctuateRates() {
+    const noiseEUR = (Math.random() - 0.5) * 0.002;
     const noiseCNY = (Math.random() - 0.5) * 0.01;
 
-    rates.EUR += affectEUR + noiseEUR;
-    rates.CNY += affectCNY + noiseCNY;
+    rates.EUR += noiseEUR;
+    rates.CNY += noiseCNY;
 
-    // Ограничения реалистичные
-    rates.EUR = Math.max(1.05, Math.min(1.30, rates.EUR));
-    rates.CNY = Math.max(6.5, Math.min(7.5, rates.CNY));
+    rates.EUR = Math.max(1.0, Math.min(1.3, rates.EUR)).toFixed(1) * 1;
+    rates.CNY = Math.max(6.5, Math.min(7.5, rates.CNY)).toFixed(1) * 1;
+
+    updateDisplay();
+    saveGame();
+}
+
+// Новости (раз в 50 сек)
+function newsImpact() {
+    const isPositive = Math.random() > 0.5;
+    const newsArray = isPositive ? positiveNews : negativeNews;
+    const news = newsArray[Math.floor(Math.random() * newsArray.length)];
+    showToast(news, isPositive);
+
+    const affectEUR = (isPositive ? 0.01 : -0.01) + (Math.random() - 0.5) * 0.005;
+    const affectCNY = (isPositive ? 0.05 : -0.05) + (Math.random() - 0.5) * 0.02;
+
+    rates.EUR += affectEUR;
+    rates.CNY += affectCNY;
+
+    rates.EUR = Math.max(1.0, Math.min(1.3, rates.EUR)).toFixed(1) * 1;
+    rates.CNY = Math.max(6.5, Math.min(7.5, rates.CNY)).toFixed(1) * 1;
 
     updateDisplay();
     saveGame();
@@ -202,8 +212,12 @@ function toggleAssets() {
 loadSave();
 updateDisplay();
 
-// Изменения каждые 12 секунд
-setInterval(changeRates, 12000);
+// Постоянные флуктуации каждые 5 сек
+setInterval(fluctuateRates, 5000);
 
-// Первая новость/изменение через 3 сек
-setTimeout(changeRates, 3000);
+// Новости каждые 50 сек
+setInterval(newsImpact, 50000);
+
+// Первая флуктуация и новость
+setTimeout(fluctuateRates, 3000);
+setTimeout(newsImpact, 5000);
