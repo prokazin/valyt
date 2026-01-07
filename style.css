@@ -39,7 +39,7 @@ h1 {
 
 .header-buttons {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     align-items: center;
 }
 
@@ -55,6 +55,24 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Анимация при нажатии */
+.icon-button.animate:active {
+    transform: scale(0.9);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Пульсация для 📈 */
+.icon-button.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 /* Модальные окна */
@@ -86,11 +104,6 @@ h1 {
     margin-top: 0;
 }
 
-.modal-content p {
-    font-size: 18px;
-    margin: 12px 0;
-}
-
 .close-btn {
     margin-top: 20px;
     background-color: #007aff;
@@ -101,7 +114,7 @@ h1 {
     font-size: 16px;
 }
 
-/* Toast уведомление */
+/* Toast */
 .toast {
     position: fixed;
     top: 100px;
