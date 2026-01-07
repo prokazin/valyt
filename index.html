@@ -13,25 +13,29 @@
         <header>
             <h1>Трейдинг валют</h1>
             <div class="header-buttons">
-                <div class="icon-button" onclick="toggleAssets()" title="Активы">
-                    💼
+                <div class="icon-row">
+                    <div class="icon-button" onclick="toggleAssets()" title="Активы">
+                        💼
+                    </div>
+                    <div class="icon-button" onclick="showExpectedProfit()" title="Ожидаемая прибыль">
+                        📈
+                    </div>
+                    <div class="icon-button" onclick="showLeaderboard()" title="Рейтинг игроков">
+                        🏆
+                    </div>
                 </div>
-                <div class="icon-button pulse" onclick="showExpectedProfit()" title="Ожидаемая прибыль">
-                    📈
-                </div>
-                <div class="icon-button" onclick="showLeaderboard()" title="Рейтинг игроков">
-                    🏆
-                </div>
-                <div class="icon-button" onclick="openBetModal()" title="Сделать ставку">
-                    🎲
-                </div>
-                <div class="icon-button" onclick="buyStarsBonus()" title="Купить USD за Stars">
-                    ⭐
+                <div class="icon-row">
+                    <div class="icon-button" onclick="openBetModal()" title="Сделать ставку">
+                        🎲
+                    </div>
+                    <div class="icon-button" onclick="showStarsShop()" title="Купить USD за Stars">
+                        ⭐
+                    </div>
                 </div>
             </div>
         </header>
 
-        <!-- Модальные окна -->
+        <!-- Модальное окно активов -->
         <div id="assets-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Ваши активы</h2>
@@ -42,6 +46,7 @@
             </div>
         </div>
 
+        <!-- Ожидаемая прибыль -->
         <div id="expected-profit-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Ожидаемая прибыль</h2>
@@ -50,41 +55,55 @@
             </div>
         </div>
 
+        <!-- Рейтинг игроков -->
         <div id="leaderboard-modal" class="modal hidden">
             <div class="modal-content">
-                <!-- Рейтинг -->
+                <!-- Рейтинг загружается сюда -->
             </div>
         </div>
 
-        <!-- Модалка ставок (плитки) -->
+        <!-- Модалка ставок -->
         <div id="bet-modal" class="modal hidden">
             <div class="modal-content bet-content">
                 <h2>Сделать ставку</h2>
-                
                 <div class="bet-grid">
                     <div class="bet-tile">
                         <h3>💶 EUR</h3>
                         <div class="bet-options">
+                            <button class="bet-btn up" onclick="quickBet('EUR','up',2)">⬆ 2 мин</button>
                             <button class="bet-btn up" onclick="quickBet('EUR','up',5)">⬆ 5 мин</button>
-                            <button class="bet-btn up" onclick="quickBet('EUR','up',15)">⬆ 15 мин</button>
+                            <button class="bet-btn down" onclick="quickBet('EUR','down',2)">⬇ 2 мин</button>
                             <button class="bet-btn down" onclick="quickBet('EUR','down',5)">⬇ 5 мин</button>
-                            <button class="bet-btn down" onclick="quickBet('EUR','down',15)">⬇ 15 мин</button>
                         </div>
                     </div>
-
                     <div class="bet-tile">
                         <h3>💴 CNY</h3>
                         <div class="bet-options">
+                            <button class="bet-btn up" onclick="quickBet('CNY','up',2)">⬆ 2 мин</button>
                             <button class="bet-btn up" onclick="quickBet('CNY','up',5)">⬆ 5 мин</button>
-                            <button class="bet-btn up" onclick="quickBet('CNY','up',15)">⬆ 15 мин</button>
+                            <button class="bet-btn down" onclick="quickBet('CNY','down',2)">⬇ 2 мин</button>
                             <button class="bet-btn down" onclick="quickBet('CNY','down',5)">⬇ 5 мин</button>
-                            <button class="bet-btn down" onclick="quickBet('CNY','down',15)">⬇ 15 мин</button>
                         </div>
                     </div>
                 </div>
-
                 <input type="number" id="bet-amount" placeholder="Сумма ставки (USD)" min="10">
                 <button onclick="closeBetModal()" class="close-btn">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Магазин Stars — 6 вариантов -->
+        <div id="stars-shop-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Купить USD за ⭐ Stars</h2>
+                <div class="stars-grid">
+                    <button class="stars-btn" onclick="buyStarsBonus(10, 5)">10 USD<br>5 ⭐</button>
+                    <button class="stars-btn" onclick="buyStarsBonus(50, 25)">50 USD<br>25 ⭐</button>
+                    <button class="stars-btn" onclick="buyStarsBonus(100, 50)">100 USD<br>50 ⭐</button>
+                    <button class="stars-btn" onclick="buyStarsBonus(250, 120)">250 USD<br>120 ⭐</button>
+                    <button class="stars-btn" onclick="buyStarsBonus(500, 240)">500 USD<br>240 ⭐</button>
+                    <button class="stars-btn" onclick="buyStarsBonus(1000, 480)">1000 USD<br>480 ⭐</button>
+                </div>
+                <button onclick="showStarsShop()" class="close-btn">Закрыть</button>
             </div>
         </div>
 
