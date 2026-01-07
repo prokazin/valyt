@@ -1,8 +1,8 @@
-// script.js — с полной оплатой Stars и быстрыми ставками
+// script.js
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
-// Supabase
+// Supabase (твой проект)
 const SUPABASE_URL = 'https://cejlpcerpwuepckkngcj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Eum6jPSZnELNF7EaIY6jfQ_TBXk7wY6';
 
@@ -11,15 +11,30 @@ const user = Telegram.WebApp.initDataUnsafe.user || null;
 const userId = user ? user.id : null;
 const username = user ? (user.username || user.first_name || 'Игрок') : 'Аноним';
 
-// Состояние
-let balances = { USD: 100.00, EUR: 0.00, CNY: 0.00 };
-let rates = { EUR: 1.2, CNY: 7.1 };
+// Состояние игры
+let balances = {
+    USD: 100.00,
+    EUR: 0.00,
+    CNY: 0.00
+};
+
+let rates = {
+    EUR: 1.2,
+    CNY: 7.1
+};
 
 // Новости
-const positiveNews = ["Экономика ЕС растёт!", "Китай объявил о стимулах"];
-const negativeNews = ["Рецессия в еврозоне", "Давление на юань"];
+const positiveNews = [
+    "Экономика ЕС растёт быстрее ожиданий!", "ЕЦБ снижает ставки", "Сильные данные по экспорту ЕС",
+    "Китай объявил о стимулах", "Рост ВВП Китая превысил прогноз", "Стабилизация юаня"
+];
 
-// Сохранение
+const negativeNews = [
+    "Рецессия в еврозоне", "ЕЦБ повышает ставки", "Слабые данные по ВВП ЕС",
+    "Замедление экономики Китая", "Давление на юань", "Торговые ограничения для Китая"
+];
+
+// Локальное сохранение
 function loadSave() {
     const saved = localStorage.getItem('currencyTradingSave');
     if (saved) {
@@ -33,9 +48,10 @@ function saveGame() {
     localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
 }
 
-// Лидерборд
+// Обновление лидерборда в Supabase
 async function updateLeaderboard() {
     if (!userId) return;
+
     try {
         await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
             method: 'POST',
@@ -45,21 +61,34 @@ async function updateLeaderboard() {
                 'Content-Type': 'application/json',
                 'Prefer': 'resolution=merge-duplicates'
             },
-            body: JSON.stringify({ user_id: userId, username, balance: balances.USD })
+            body: JSON.stringify({
+                user_id: userId,
+                username: username,
+                balance: balances.USD
+            })
         });
-    } catch (err) {}
+    } catch (err) {
+        console.error('Ошибка отправки в лидерборд');
+    }
 }
 
+// Загрузка топ-10
 async function loadLeaderboard() {
     try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=balance.desc&limit=10`, {
-            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
         });
+
         if (res.ok) {
             const data = await res.json();
             displayLeaderboard(data);
         }
-    } catch (err) {}
+    } catch (err) {
+        console.error('Ошибка загрузки рейтинга');
+    }
 }
 
 function displayLeaderboard(players) {
@@ -79,7 +108,7 @@ function displayLeaderboard(players) {
     document.querySelector('#leaderboard-modal .modal-content').innerHTML = html;
 }
 
-// UI
+// Обновление UI
 function updateDisplay() {
     document.getElementById('usd-balance').textContent = balances.USD.toFixed(2);
     document.getElementById('eur-rate').textContent = rates.EUR.toFixed(1);
@@ -107,7 +136,7 @@ function updateHint(currency) {
     hint.textContent = `Купите ${qty} ${currency} | Продайте ${qty} ${currency}`;
 }
 
-// Toast
+// Toast уведомление
 function showToast(msg, positive = true) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
@@ -133,7 +162,8 @@ function fluctuateRates() {
 
 function newsImpact() {
     const positive = Math.random() < 0.5;
-    const news = (positive ? positiveNews : negativeNews)[Math.floor(Math.random() * positiveNews.length)];
+    const newsArr = positive ? positiveNews : negativeNews;
+    const news = newsArr[Math.floor(Math.random() * newsArr.length)];
     const effEUR = positive ? (Math.random() * 0.6 + 0.2) : -(Math.random() * 0.6 + 0.2);
     const effCNY = positive ? (Math.random() * 12 + 4) : -(Math.random() * 12 + 4);
     rates.EUR += effEUR;
@@ -183,7 +213,7 @@ function sellAll(cur) {
     showToast(`Всё продано`);
 }
 
-// Ставки (быстрые кнопки)
+// Быстрые ставки
 function quickBet(currency, direction, minutes) {
     const amount = parseFloat(document.getElementById('bet-amount').value);
     if (isNaN(amount) || amount <= 0 || amount > balances.USD) {
@@ -230,40 +260,41 @@ function checkBet(currency, direction, amount, startRate) {
     updateLeaderboard();
 }
 
-// Оплата Stars (полностью рабочая)
+// Покупка за Telegram Stars (полностью рабочая)
 function buyStarsBonus() {
     Telegram.WebApp.showPopup({
         title: "Бонус за Stars",
         message: "Купить 1000 USD за 100 ⭐ Stars?",
         buttons: [
             { type: 'ok', text: 'Купить' },
-            { type: 'cancel' }
+            { type: 'cancel', text: 'Отмена' }
         ]
-    }, (btn) => {
-        if (btn === 'ok') {
+    }, (button) => {
+        if (button === 'ok') {
             const invoice = {
                 title: 'Бонус в трейдинге',
                 description: '+1000 USD в игре',
-                payload: 'bonus_1000_usd',
+                payload: 'bonus_usd_1000',
                 provider_token: '',
                 currency: 'XTR',
                 prices: [{ label: 'Бонус 1000 USD', amount: 10000 }] // 100 Stars
             };
+
             Telegram.WebApp.sendInvoice(invoice);
         }
     });
 }
 
-// Обработка оплаты
+// Обработка оплаты Stars
 Telegram.WebApp.onEvent('invoice_closed', (payload) => {
-    if (payload.status === 'paid' && payload.payload === 'bonus_1000_usd') {
+    if (payload.status === 'paid' && payload.payload === 'bonus_usd_1000') {
         balances.USD += 1000;
         updateDisplay();
         saveGame();
         updateLeaderboard();
         showToast('+1000 USD за Stars! ⭐', true);
-    } else if (payload.status === 'failed') {
-        showToast('Оплата не удалась', false);
+    } else if (payload.status === 'failed' || payload.status === 'cancelled') {
+        showToast('Оплата отменена или не удалась', false);
     }
 });
 
