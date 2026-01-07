@@ -125,14 +125,14 @@ function showToast(message, isPositive = true) {
 
 // Случайные флуктуации (постоянно, каждые 5 сек)
 function fluctuateRates() {
-    const noiseEUR = (Math.random() - 0.5) * 0.5; // Сильный шум для EUR
-    const noiseCNY = (Math.random() - 0.5) * 5.0; // Ещё сильнее для CNY
+    const noiseEUR = (Math.random() - 0.5) * 0.8; // Усилено для быстрого роста/падения
+    const noiseCNY = (Math.random() - 0.5) * 8.0; // Ещё сильнее для CNY
 
     rates.midEUR += noiseEUR;
     rates.midCNY += noiseCNY;
 
-    rates.midEUR = Math.max(0.1, Math.min(100.0, rates.midEUR));
-    rates.midCNY = Math.max(1.0, Math.min(500.0, rates.midCNY));
+    rates.midEUR = Math.max(0.1, rates.midEUR);
+    rates.midCNY = Math.max(1.0, rates.midCNY);
 
     updateDisplay();
     saveGame();
@@ -145,40 +145,40 @@ function newsImpact() {
 
     if (rand < 0.4) {
         news = positiveNews[Math.floor(Math.random() * positiveNews.length)];
-        affectEUR = Math.random() * 1.0 + 0.5; // Быстрый рост
-        affectCNY = Math.random() * 10.0 + 5.0;
+        affectEUR = Math.random() * 2.0 + 1.0; // Быстрый рост
+        affectCNY = Math.random() * 20.0 + 10.0;
     } else if (rand < 0.8) {
         news = negativeNews[Math.floor(Math.random() * negativeNews.length)];
-        affectEUR = - (Math.random() * 1.0 + 0.5);
-        affectCNY = - (Math.random() * 10.0 + 5.0);
+        affectEUR = - (Math.random() * 2.0 + 1.0);
+        affectCNY = - (Math.random() * 20.0 + 10.0);
         isPositive = false;
     } else if (rand < 0.9) {
         if (Math.random() > 0.5) {
             news = eurPositive[Math.floor(Math.random() * eurPositive.length)];
-            affectEUR = Math.random() * 1.5 + 0.5;
+            affectEUR = Math.random() * 3.0 + 1.0;
         } else {
             news = eurNegative[Math.floor(Math.random() * eurNegative.length)];
-            affectEUR = - (Math.random() * 1.5 + 0.5);
+            affectEUR = - (Math.random() * 3.0 + 1.0);
             isPositive = false;
         }
-        affectCNY = affectEUR * (Math.random() * 2.0 - 1.0);
+        affectCNY = affectEUR * (Math.random() * 0.4 - 0.2) * 10; // Усилено влияние на CNY
     } else {
         if (Math.random() > 0.5) {
             news = cnyPositive[Math.floor(Math.random() * cnyPositive.length)];
-            affectCNY = Math.random() * 15.0 + 5.0;
+            affectCNY = Math.random() * 30.0 + 10.0;
         } else {
             news = cnyNegative[Math.floor(Math.random() * cnyNegative.length)];
-            affectCNY = - (Math.random() * 15.0 + 5.0);
+            affectCNY = - (Math.random() * 30.0 + 10.0);
             isPositive = false;
         }
-        affectEUR = affectCNY * (Math.random() * 0.5 - 0.25);
+        affectEUR = affectCNY * (Math.random() * 0.3 - 0.15) * 0.1; // Легкое влияние на EUR
     }
 
     rates.midEUR += affectEUR;
     rates.midCNY += affectCNY;
 
-    rates.midEUR = Math.max(0.1, Math.min(100.0, rates.midEUR));
-    rates.midCNY = Math.max(1.0, Math.min(500.0, rates.midCNY));
+    rates.midEUR = Math.max(0.1, rates.midEUR);
+    rates.midCNY = Math.max(1.0, rates.midCNY);
 
     showToast(news, isPositive);
     updateDisplay();
