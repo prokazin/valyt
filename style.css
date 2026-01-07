@@ -1,4 +1,4 @@
-/* style.css — оптимизировано для 5 иконок */
+/* style.css */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #f2f2f7;
@@ -37,44 +37,35 @@ h1 {
     margin: 0;
 }
 
-/* 5 иконок компактно */
 .header-buttons {
     display: flex;
-    gap: 8px; /* Уменьшено для 5 иконок */
+    gap: 8px;
     align-items: center;
 }
 
 .icon-button {
     background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 12px;
-    padding: 8px;
+    border-radius: 16px;
+    padding: 10px 16px;
+    text-align: center;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    font-size: 22px; /* Уменьшено */
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-width: 120px;
 }
 
-.icon-button:active {
-    transform: scale(0.9);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.icon-button span:first-child {
+    display: block;
+    font-size: 12px;
+    color: #666;
 }
 
-.icon-button.pulse {
-    animation: pulse 2s infinite;
+.icon-button span:last-child {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000;
 }
 
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* Модальные окна */
+/* Модальное окно активов */
 .modal {
     position: fixed;
     top: 0;
@@ -94,60 +85,18 @@ h1 {
     border-radius: 20px;
     padding: 24px;
     text-align: center;
-    width: 85%;
-    max-width: 340px;
+    width: 80%;
+    max-width: 300px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
-.bet-content {
-    text-align: center;
+.modal-content h2 {
+    margin-top: 0;
 }
 
-.bet-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin: 20px 0;
-}
-
-.bet-tile {
-    background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 16px;
-    padding: 14px;
-}
-
-.bet-tile h3 {
-    margin: 0 0 12px;
+.modal-content p {
     font-size: 18px;
-}
-
-.bet-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-}
-
-.bet-btn {
-    padding: 10px;
-    border: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.bet-btn.up {
-    background-color: #28a745;
-    color: white;
-}
-
-.bet-btn.down {
-    background-color: #dc3545;
-    color: white;
-}
-
-.bet-btn:active {
-    opacity: 0.8;
+    margin: 12px 0;
 }
 
 .close-btn {
@@ -160,7 +109,7 @@ h1 {
     font-size: 16px;
 }
 
-/* Toast */
+/* Toast уведомление */
 .toast {
     position: fixed;
     top: 100px;
@@ -252,7 +201,7 @@ h1 {
 
 .buttons {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     justify-content: center;
 }
 
@@ -263,7 +212,7 @@ h1 {
     border: none;
     border-radius: 12px;
     padding: 12px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
 }
@@ -277,15 +226,5 @@ h1 {
         width: 95%;
         padding: 16px;
         margin: 10px 0;
-    }
-    
-    .header-buttons {
-        gap: 6px;
-    }
-    
-    .icon-button {
-        width: 38px;
-        height: 38px;
-        font-size: 20px;
     }
 }
