@@ -44,12 +44,6 @@ const negativeNews = [
     "Снижение экспорта Китая", "Кризис на рынке недвижимости Китая", "Геополитическая напряжённость"
 ];
 
-// Специфичные новости
-const eurPositive = ["Еврозона показывает рост", "Евро укрепляется", "Приток инвестиций в ЕС", "Снижение ставок ЕЦБ"];
-const eurNegative = ["Кризис в еврозоне", "Евро слабеет", "Отток капитала из ЕС", "Повышение ставок ЕЦБ"];
-const cnyPositive = ["Юань укрепляется", "Китай стимулирует экономику", "Рост экспорта КНР", "Стабильность в Китае"];
-const cnyNegative = ["Юань под давлением", "Замедление в Китае", "Ограничения на экспорт", "Кризис недвижимости КНР"];
-
 // Обновление отображения
 function updateDisplay() {
     document.getElementById('usd-balance').textContent = balances.USD.toFixed(2);
@@ -231,6 +225,12 @@ function toggleAssets() {
     const modal = document.getElementById('assets-modal');
     modal.classList.toggle('hidden');
     updateDisplay();
+}
+
+// Окно прибыли
+function showProfit() {
+    const modal = document.getElementById('profit-modal');
+    modal.classList.toggle('hidden');
 }
 
 // Инициализация
