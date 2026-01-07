@@ -13,24 +13,19 @@
         <header>
             <h1>Трейдинг валют</h1>
             <div class="header-buttons">
-                <!-- Кошелёк (активы) -->
                 <div class="icon-button animate" onclick="toggleAssets()" title="Активы">
                     💼
                 </div>
-                
-                <!-- Ожидаемая прибыль (заглушка) -->
                 <div class="icon-button animate pulse" onclick="showExpectedProfit()" title="Ожидаемая прибыль">
                     📈
                 </div>
-                
-                <!-- Рейтинг игроков -->
                 <div class="icon-button animate" onclick="showLeaderboard()" title="Рейтинг игроков">
                     🏆
                 </div>
             </div>
         </header>
 
-        <!-- Модальное окно активов -->
+        <!-- Активы -->
         <div id="assets-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Ваши активы</h2>
@@ -41,7 +36,7 @@
             </div>
         </div>
 
-        <!-- Окно "Ожидаем прибыль…" (заглушка) -->
+        <!-- Ожидаем прибыль… -->
         <div id="expected-profit-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Ожидаемая прибыль</h2>
@@ -50,14 +45,37 @@
             </div>
         </div>
 
-        <!-- Окно рейтинга игроков -->
+        <!-- Рейтинг игроков -->
         <div id="leaderboard-modal" class="modal hidden">
             <div class="modal-content">
-                <!-- Рейтинг будет загружен сюда -->
+                <!-- Загружается динамически -->
             </div>
         </div>
 
-        <!-- Toast уведомление -->
+        <!-- Модалка ставок -->
+        <div id="bet-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Сделать ставку</h2>
+                <select id="bet-currency">
+                    <option value="EUR">EUR</option>
+                    <option value="CNY">CNY</option>
+                </select>
+                <select id="bet-direction">
+                    <option value="up">Курс вырастет</option>
+                    <option value="down">Курс упадёт</option>
+                </select>
+                <select id="bet-time">
+                    <option value="300">5 минут</option>
+                    <option value="900">15 минут</option>
+                    <option value="3600">1 час</option>
+                </select>
+                <input type="number" id="bet-amount" placeholder="Сумма ставки (USD)" min="10">
+                <button onclick="placeBet()" class="buy-btn">Сделать ставку</button>
+                <button onclick="closeBetModal()" class="close-btn">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Toast -->
         <div id="toast" class="toast hidden"></div>
 
         <div class="trading-section">
@@ -94,6 +112,15 @@
                     <button onclick="sell('CNY')">Продать</button>
                     <button onclick="sellAll('CNY')">Продать все</button>
                 </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="action-card">
+                <button onclick="openBetModal()" class="bet-button">Сделать ставку на курс</button>
+            </div>
+
+            <div class="action-card">
+                <button onclick="buyStarsBonus()" class="stars-button">Купить USD за ⭐ Stars</button>
             </div>
         </div>
     </div>
