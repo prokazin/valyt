@@ -2,6 +2,15 @@
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
+// Конфиг Supabase
+const SUPABASE_URL = 'https://usokyVoBYkVQpiHiM8DPWQ.supabase.co'; // из твоего ключа
+const SUPABASE_ANON_KEY = 'sb_publishable_usokyVoBYkVQpiHiM8DPWQ_fHLItYKD';
+
+// Данные пользователя
+const user = Telegram.WebApp.initDataUnsafe.user || null;
+const userId = user ? user.id : null;
+const username = user ? (user.username || user.first_name || 'Игрок') : 'Аноним';
+
 // Состояние игры
 let balances = {
     USD: 100.00,
@@ -14,7 +23,7 @@ let rates = {
     CNY: 7.1
 };
 
-// Загрузка/сохранение
+// Загрузка/сохранение локально
 function loadSave() {
     const saved = localStorage.getItem('currencyTradingSave');
     if (saved) {
@@ -28,18 +37,69 @@ function saveGame() {
     localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
 }
 
-// Новости
-const positiveNews = [
-    "Экономика ЕС растёт быстрее ожиданий!", "ЕЦБ снижает ставки", "Сильные данные по экспорту ЕС",
-    "Китай объявил о стимулах", "Рост ВВП Китая превысил прогноз", "Стабилизация юаня"
-];
+// Отправка баланса в рейтинг
+async function updateLeaderboard() {
+    if (!userId) return; // Только авторизованные пользователи
 
-const negativeNews = [
-    "Рецессия в еврозоне", "ЕЦБ повышает ставки", "Слабые данные по ВВП ЕС",
-    "Замедление экономики Китая", "Давление на юань", "Торговые ограничения для Китая"
-];
+    try {
+        // Используем upsert — обновит, если запись есть
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                username: username,
+                balance: balances.USD
+            })
+        });
 
-// Обновление отображения
+        if (!response.ok) {
+            console.error('Ошибка отправки в рейтинг');
+        }
+    } catch (err) {
+        console.error('Сеть:', err);
+    }
+}
+
+// Загрузка топ-10
+async function loadLeaderboard() {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=balance.desc&limit=10`, {
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            displayLeaderboard(data);
+        }
+    } catch (err) {
+        console.error('Ошибка загрузки рейтинга');
+    }
+}
+
+// Отображение рейтинга в окне 📈
+function displayLeaderboard(players) {
+    let html = '<h2>🏆 Топ-10 игроков</h2><ol style="text-align:left;margin:0 auto;max-width:260px;">';
+    players.forEach((p, i) => {
+        const name = p.username || 'Игрок';
+        const highlight = p.user_id === userId ? ' style="color:#007aff;font-weight:bold;"' : '';
+        html += `<li${highlight}>${i+1}. ${name} — ${parseFloat(p.balance).toFixed(2)} USD</li>`;
+    });
+    html += '</ol>';
+    html += '<button onclick="showProfit()" class="close-btn">Закрыть</button>';
+
+    document.querySelector('#profit-modal .modal-content').innerHTML = html;
+}
+
+// Обновление UI
 function updateDisplay() {
     document.getElementById('usd-balance').textContent = balances.USD.toFixed(2);
     document.getElementById('eur-rate').textContent = rates.EUR.toFixed(1);
@@ -57,155 +117,112 @@ function updateDisplay() {
 
 // Подсказки
 function updateHint(currency) {
-    const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
+    const input = document.getElementById(`${currency.toLowerCase()}-amount`);
     const hint = document.getElementById(`${currency.toLowerCase()}-hint`);
-    const amount = parseFloat(amountInput.value);
-
+    const amount = parseFloat(input.value);
     if (isNaN(amount) || amount <= 0) {
         hint.textContent = '';
         return;
     }
-
-    let qty;
-    if (currency === 'EUR') {
-        qty = (amount / rates.EUR).toFixed(2);
-    } else if (currency === 'CNY') {
-        qty = (amount / rates.CNY).toFixed(2);
-    }
-
+    const qty = (amount / rates[currency]).toFixed(2);
     hint.textContent = `Купите ${qty} ${currency} | Продайте ${qty} ${currency}`;
 }
 
 // Toast
-function showToast(message, isPositive = true) {
+function showToast(msg, positive = true) {
     const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.style.backgroundColor = isPositive ? 'rgba(0, 150, 0, 0.9)' : 'rgba(200, 0, 0, 0.9)';
+    toast.textContent = msg;
+    toast.style.backgroundColor = positive ? 'rgba(0,150,0,0.9)' : 'rgba(200,0,0,0.9)';
     toast.classList.remove('hidden');
     toast.classList.add('show');
-
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => toast.classList.add('hidden'), 300);
     }, 4000);
 }
 
-// Сбалансированные сильные колебания (рост и падение равновероятны)
+// Волатильность (сбалансированная)
 function fluctuateRates() {
-    // EUR: симметричные изменения ±0.05–0.25
-    const changeEUR = (Math.random() - 0.5) * 0.4;
-    rates.EUR += changeEUR;
-
-    // CNY: симметричные изменения ±1.0–5.0
-    const changeCNY = (Math.random() - 0.5) * 8.0;
-    rates.CNY += changeCNY;
-
+    rates.EUR += (Math.random() - 0.5) * 0.4;
+    rates.CNY += (Math.random() - 0.5) * 8.0;
     rates.EUR = Math.max(0.5, rates.EUR);
     rates.CNY = Math.max(3.0, rates.CNY);
-
     updateDisplay();
     saveGame();
+    updateLeaderboard();
 }
 
-// Новости: 50/50 положительные/отрицательные с сильным влиянием
 function newsImpact() {
-    const isPositive = Math.random() < 0.5;
-    const newsArray = isPositive ? positiveNews : negativeNews;
-    const news = newsArray[Math.floor(Math.random() * newsArray.length)];
-
-    const affectEUR = isPositive ? (Math.random() * 0.6 + 0.2) : -(Math.random() * 0.6 + 0.2);
-    const affectCNY = isPositive ? (Math.random() * 12.0 + 4.0) : -(Math.random() * 12.0 + 4.0);
-
-    rates.EUR += affectEUR;
-    rates.CNY += affectCNY;
-
+    const positive = Math.random() < 0.5;
+    const newsArr = positive ? positiveNews : negativeNews;
+    const news = newsArr[Math.floor(Math.random() * newsArr.length)];
+    const effEUR = positive ? (Math.random() * 0.6 + 0.2) : -(Math.random() * 0.6 + 0.2);
+    const effCNY = positive ? (Math.random() * 12 + 4) : -(Math.random() * 12 + 4);
+    rates.EUR += effEUR;
+    rates.CNY += effCNY;
     rates.EUR = Math.max(0.5, rates.EUR);
     rates.CNY = Math.max(3.0, rates.CNY);
-
-    showToast(news, isPositive);
+    showToast(news, positive);
     updateDisplay();
     saveGame();
+    updateLeaderboard();
 }
 
-// Покупка/продажа/продажа всего
-function buy(currency) {
-    const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
-    const amount = parseFloat(amountInput.value);
-
-    if (isNaN(amount) || amount <= 0 || amount > balances.USD) {
-        showToast("Недостаточно USD или неверная сумма", false);
-        return;
-    }
-
-    if (currency === 'EUR') {
-        balances.EUR += amount / rates.EUR;
-    } else if (currency === 'CNY') {
-        balances.CNY += amount / rates.CNY;
-    }
-    balances.USD -= amount;
-
-    amountInput.value = '';
+// Торговля
+function buy(cur) {
+    const amt = parseFloat(document.getElementById(`${cur.toLowerCase()}-amount`).value);
+    if (isNaN(amt) || amt <= 0 || amt > balances.USD) return showToast("Ошибка суммы", false);
+    if (cur === 'EUR') balances.EUR += amt / rates.EUR;
+    else balances.CNY += amt / rates.CNY;
+    balances.USD -= amt;
+    document.getElementById(`${cur.toLowerCase()}-amount`).value = '';
     updateDisplay();
     saveGame();
-    showToast(`Куплено ${currency} на ${amount.toFixed(2)} USD`);
+    updateLeaderboard();
+    showToast(`Куплено ${cur}`);
 }
 
-function sell(currency) {
-    const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
-    const amount = parseFloat(amountInput.value);
-
-    if (isNaN(amount) || amount <= 0) {
-        showToast("Введите корректную сумму", false);
-        return;
-    }
-
-    const toSell = amount / rates[currency];
-    if (toSell > balances[currency]) {
-        showToast(`Недостаточно ${currency}`, false);
-        return;
-    }
-
-    balances[currency] -= toSell;
-    balances.USD += amount;
-
-    amountInput.value = '';
+function sell(cur) {
+    const amt = parseFloat(document.getElementById(`${cur.toLowerCase()}-amount`).value);
+    if (isNaN(amt) || amt <= 0) return showToast("Ошибка суммы", false);
+    const toSell = amt / rates[cur];
+    if (toSell > balances[cur]) return showToast(`Недостаточно ${cur}`, false);
+    balances[cur] -= toSell;
+    balances.USD += amt;
+    document.getElementById(`${cur.toLowerCase()}-amount`).value = '';
     updateDisplay();
     saveGame();
-    showToast(`Продано ${currency} за ${amount.toFixed(2)} USD`);
+    updateLeaderboard();
+    showToast(`Продано ${cur}`);
 }
 
-function sellAll(currency) {
-    if (balances[currency] <= 0) {
-        showToast(`Нет ${currency} для продажи`, false);
-        return;
-    }
-
-    const usdGain = balances[currency] * rates[currency];
-    balances.USD += usdGain;
-    balances[currency] = 0;
-
+function sellAll(cur) {
+    if (balances[cur] <= 0) return showToast(`Нет ${cur}`, false);
+    balances.USD += balances[cur] * rates[cur];
+    balances[cur] = 0;
     updateDisplay();
     saveGame();
-    showToast(`Продана вся ${currency} за ${usdGain.toFixed(2)} USD`);
+    updateLeaderboard();
+    showToast(`Всё продано`);
 }
 
-// Модальные окна
+// Модалки
 function toggleAssets() {
     document.getElementById('assets-modal').classList.toggle('hidden');
     updateDisplay();
 }
 
 function showProfit() {
+    loadLeaderboard();
     document.getElementById('profit-modal').classList.toggle('hidden');
 }
 
 // Инициализация
 loadSave();
 updateDisplay();
+updateLeaderboard(); // Отправить начальный баланс
 
-// Колебания каждые 5 сек, новости каждые 50 сек
 setInterval(fluctuateRates, 5000);
 setInterval(newsImpact, 50000);
-
 setTimeout(fluctuateRates, 3000);
 setTimeout(newsImpact, 5000);
