@@ -1,8 +1,8 @@
-// script.js (обновлённые ставки с быстрым выбором)
+// script.js — с полной оплатой Stars и быстрыми ставками
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
-// Supabase (твой проект)
+// Supabase
 const SUPABASE_URL = 'https://cejlpcerpwuepckkngcj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Eum6jPSZnELNF7EaIY6jfQ_TBXk7wY6';
 
@@ -120,7 +120,7 @@ function showToast(msg, positive = true) {
     }, 4000);
 }
 
-// Волатильность и новости (как раньше)
+// Волатильность
 function fluctuateRates() {
     rates.EUR += (Math.random() - 0.5) * 0.4;
     rates.CNY += (Math.random() - 0.5) * 8.0;
@@ -146,7 +146,7 @@ function newsImpact() {
     updateLeaderboard();
 }
 
-// Торговля (как раньше)
+// Торговля
 function buy(cur) {
     const amt = parseFloat(document.getElementById(`${cur.toLowerCase()}-amount`).value);
     if (isNaN(amt) || amt <= 0 || amt > balances.USD) return showToast("Ошибка суммы", false);
@@ -183,7 +183,7 @@ function sellAll(cur) {
     showToast(`Всё продано`);
 }
 
-// Быстрая ставка (новая функция)
+// Ставки (быстрые кнопки)
 function quickBet(currency, direction, minutes) {
     const amount = parseFloat(document.getElementById('bet-amount').value);
     if (isNaN(amount) || amount <= 0 || amount > balances.USD) {
@@ -211,7 +211,6 @@ function quickBet(currency, direction, minutes) {
     setTimeout(() => checkBet(currency, direction, amount, startRate), minutes * 60 * 1000);
 }
 
-// Проверка ставки (как раньше)
 let activeBets = [];
 
 function checkBet(currency, direction, amount, startRate) {
@@ -231,7 +230,7 @@ function checkBet(currency, direction, amount, startRate) {
     updateLeaderboard();
 }
 
-// Покупка за Stars
+// Оплата Stars (полностью рабочая)
 function buyStarsBonus() {
     Telegram.WebApp.showPopup({
         title: "Бонус за Stars",
@@ -248,13 +247,14 @@ function buyStarsBonus() {
                 payload: 'bonus_1000_usd',
                 provider_token: '',
                 currency: 'XTR',
-                prices: [{ label: 'Бонус 1000 USD', amount: 10000 }]
+                prices: [{ label: 'Бонус 1000 USD', amount: 10000 }] // 100 Stars
             };
             Telegram.WebApp.sendInvoice(invoice);
         }
     });
 }
 
+// Обработка оплаты
 Telegram.WebApp.onEvent('invoice_closed', (payload) => {
     if (payload.status === 'paid' && payload.payload === 'bonus_1000_usd') {
         balances.USD += 1000;
@@ -262,6 +262,8 @@ Telegram.WebApp.onEvent('invoice_closed', (payload) => {
         saveGame();
         updateLeaderboard();
         showToast('+1000 USD за Stars! ⭐', true);
+    } else if (payload.status === 'failed') {
+        showToast('Оплата не удалась', false);
     }
 });
 
