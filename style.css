@@ -1,4 +1,4 @@
-/* style.css */
+/* style.css — оптимизировано для 5 иконок */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #f2f2f7;
@@ -37,28 +37,29 @@ h1 {
     margin: 0;
 }
 
+/* 5 иконок компактно */
 .header-buttons {
     display: flex;
-    gap: 10px; /* Уменьшено расстояние для 5 иконок */
+    gap: 8px; /* Уменьшено для 5 иконок */
     align-items: center;
 }
 
 .icon-button {
     background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 14px;
-    padding: 10px;
+    border-radius: 12px;
+    padding: 8px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    font-size: 24px; /* Уменьшено для компактности */
-    width: 46px;
-    height: 46px;
+    font-size: 22px; /* Уменьшено */
+    width: 42px;
+    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.icon-button.animate:active {
+.icon-button:active {
     transform: scale(0.9);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -69,7 +70,7 @@ h1 {
 
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.08); }
+    50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
 
@@ -276,5 +277,15 @@ h1 {
         width: 95%;
         padding: 16px;
         margin: 10px 0;
+    }
+    
+    .header-buttons {
+        gap: 6px;
+    }
+    
+    .icon-button {
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
     }
 }
