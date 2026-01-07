@@ -1,8 +1,8 @@
-// script.js
+// script.js (обновлённые ставки с быстрым выбором)
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
-// Supabase (твой новый проект)
+// Supabase (твой проект)
 const SUPABASE_URL = 'https://cejlpcerpwuepckkngcj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Eum6jPSZnELNF7EaIY6jfQ_TBXk7wY6';
 
@@ -19,7 +19,7 @@ let rates = { EUR: 1.2, CNY: 7.1 };
 const positiveNews = ["Экономика ЕС растёт!", "Китай объявил о стимулах"];
 const negativeNews = ["Рецессия в еврозоне", "Давление на юань"];
 
-// Локальное сохранение
+// Сохранение
 function loadSave() {
     const saved = localStorage.getItem('currencyTradingSave');
     if (saved) {
@@ -120,7 +120,7 @@ function showToast(msg, positive = true) {
     }, 4000);
 }
 
-// Волатильность
+// Волатильность и новости (как раньше)
 function fluctuateRates() {
     rates.EUR += (Math.random() - 0.5) * 0.4;
     rates.CNY += (Math.random() - 0.5) * 8.0;
@@ -133,7 +133,7 @@ function fluctuateRates() {
 
 function newsImpact() {
     const positive = Math.random() < 0.5;
-    const news = (positive ? positiveNews : negativeNews)[Math.floor(Math.random() * 2)];
+    const news = (positive ? positiveNews : negativeNews)[Math.floor(Math.random() * positiveNews.length)];
     const effEUR = positive ? (Math.random() * 0.6 + 0.2) : -(Math.random() * 0.6 + 0.2);
     const effCNY = positive ? (Math.random() * 12 + 4) : -(Math.random() * 12 + 4);
     rates.EUR += effEUR;
@@ -146,7 +146,7 @@ function newsImpact() {
     updateLeaderboard();
 }
 
-// Торговля
+// Торговля (как раньше)
 function buy(cur) {
     const amt = parseFloat(document.getElementById(`${cur.toLowerCase()}-amount`).value);
     if (isNaN(amt) || amt <= 0 || amt > balances.USD) return showToast("Ошибка суммы", false);
@@ -183,25 +183,11 @@ function sellAll(cur) {
     showToast(`Всё продано`);
 }
 
-// Ставки
-let activeBets = [];
-
-function openBetModal() {
-    document.getElementById('bet-modal').classList.remove('hidden');
-}
-
-function closeBetModal() {
-    document.getElementById('bet-modal').classList.add('hidden');
-}
-
-function placeBet() {
-    const currency = document.getElementById('bet-currency').value;
-    const direction = document.getElementById('bet-direction').value;
-    const time = parseInt(document.getElementById('bet-time').value);
+// Быстрая ставка (новая функция)
+function quickBet(currency, direction, minutes) {
     const amount = parseFloat(document.getElementById('bet-amount').value);
-
     if (isNaN(amount) || amount <= 0 || amount > balances.USD) {
-        showToast("Неверная сумма ставки", false);
+        showToast("Введите сумму ставки", false);
         return;
     }
 
@@ -213,17 +199,20 @@ function placeBet() {
         direction,
         amount,
         startRate,
-        endTime: Date.now() + time * 1000
+        endTime: Date.now() + minutes * 60 * 1000
     });
 
     updateDisplay();
     saveGame();
     updateLeaderboard();
-    showToast(`Ставка ${amount} USD на ${direction === 'up' ? 'рост' : 'падение'} ${currency} принята!`);
+    showToast(`Ставка ${amount} USD на ${direction === 'up' ? 'рост' : 'падение'} ${currency} (${minutes} мин)`);
     closeBetModal();
 
-    setTimeout(() => checkBet(currency, direction, amount, startRate), time * 1000);
+    setTimeout(() => checkBet(currency, direction, amount, startRate), minutes * 60 * 1000);
 }
+
+// Проверка ставки (как раньше)
+let activeBets = [];
 
 function checkBet(currency, direction, amount, startRate) {
     const currentRate = rates[currency];
@@ -259,9 +248,8 @@ function buyStarsBonus() {
                 payload: 'bonus_1000_usd',
                 provider_token: '',
                 currency: 'XTR',
-                prices: [{ label: 'Бонус 1000 USD', amount: 10000 }] // 100 Stars = 10000 (в копейках)
+                prices: [{ label: 'Бонус 1000 USD', amount: 10000 }]
             };
-
             Telegram.WebApp.sendInvoice(invoice);
         }
     });
@@ -290,6 +278,14 @@ function showExpectedProfit() {
 function showLeaderboard() {
     loadLeaderboard();
     document.getElementById('leaderboard-modal').classList.toggle('hidden');
+}
+
+function openBetModal() {
+    document.getElementById('bet-modal').classList.remove('hidden');
+}
+
+function closeBetModal() {
+    document.getElementById('bet-modal').classList.add('hidden');
 }
 
 // Инициализация
