@@ -2,11 +2,11 @@
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
-// Конфиг Supabase
-const SUPABASE_URL = 'https://usokyVoBYkVQpiHiM8DPWQ.supabase.co'; // из твоего ключа
+// Supabase конфиг
+const SUPABASE_URL = 'https://usokyVoBYkVQpiHiM8DPWQ.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_usokyVoBYkVQpiHiM8DPWQ_fHLItYKD';
 
-// Данные пользователя
+// Пользователь
 const user = Telegram.WebApp.initDataUnsafe.user || null;
 const userId = user ? user.id : null;
 const username = user ? (user.username || user.first_name || 'Игрок') : 'Аноним';
@@ -23,7 +23,18 @@ let rates = {
     CNY: 7.1
 };
 
-// Загрузка/сохранение локально
+// Новости (для уведомлений)
+const positiveNews = [
+    "Экономика ЕС растёт быстрее ожиданий!", "ЕЦБ снижает ставки", "Сильные данные по экспорту ЕС",
+    "Китай объявил о стимулах", "Рост ВВП Китая превысил прогноз", "Стабилизация юаня"
+];
+
+const negativeNews = [
+    "Рецессия в еврозоне", "ЕЦБ повышает ставки", "Слабые данные по ВВП ЕС",
+    "Замедление экономики Китая", "Давление на юань", "Торговые ограничения для Китая"
+];
+
+// Локальное сохранение
 function loadSave() {
     const saved = localStorage.getItem('currencyTradingSave');
     if (saved) {
@@ -37,13 +48,12 @@ function saveGame() {
     localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
 }
 
-// Отправка баланса в рейтинг
+// Обновление лидерборда в Supabase
 async function updateLeaderboard() {
-    if (!userId) return; // Только авторизованные пользователи
+    if (!userId) return;
 
     try {
-        // Используем upsert — обновит, если запись есть
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
             method: 'POST',
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
@@ -57,46 +67,45 @@ async function updateLeaderboard() {
                 balance: balances.USD
             })
         });
-
-        if (!response.ok) {
-            console.error('Ошибка отправки в рейтинг');
-        }
     } catch (err) {
-        console.error('Сеть:', err);
+        console.error('Ошибка лидерборда:', err);
     }
 }
 
-// Загрузка топ-10
+// Загрузка лидерборда
 async function loadLeaderboard() {
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=balance.desc&limit=10`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=balance.desc&limit=10`, {
             headers: {
                 'apikey': SUPABASE_ANON_KEY,
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
             }
         });
 
-        if (response.ok) {
-            const data = await response.json();
+        if (res.ok) {
+            const data = await res.json();
             displayLeaderboard(data);
         }
     } catch (err) {
-        console.error('Ошибка загрузки рейтинга');
+        console.error('Ошибка загрузки:', err);
     }
 }
 
-// Отображение рейтинга в окне 📈
 function displayLeaderboard(players) {
-    let html = '<h2>🏆 Топ-10 игроков</h2><ol style="text-align:left;margin:0 auto;max-width:260px;">';
-    players.forEach((p, i) => {
-        const name = p.username || 'Игрок';
-        const highlight = p.user_id === userId ? ' style="color:#007aff;font-weight:bold;"' : '';
-        html += `<li${highlight}>${i+1}. ${name} — ${parseFloat(p.balance).toFixed(2)} USD</li>`;
-    });
-    html += '</ol>';
-    html += '<button onclick="showProfit()" class="close-btn">Закрыть</button>';
-
-    document.querySelector('#profit-modal .modal-content').innerHTML = html;
+    let html = '<h2>🏆 Топ-10 игроков</h2>';
+    if (players.length === 0) {
+        html += '<p style="font-size:16px;color:#666;">Пока никто не играл.<br>Будьте первым в рейтинге!</p>';
+    } else {
+        html += '<ol style="text-align:left;margin:0 auto;max-width:260px;">';
+        players.forEach((p, i) => {
+            const name = p.username || 'Игрок';
+            const highlight = p.user_id === userId ? ' style="color:#007aff;font-weight:bold;"' : '';
+            html += `<li${highlight}>${i+1}. ${name} — ${parseFloat(p.balance).toFixed(2)} USD</li>`;
+        });
+        html += '</ol>';
+    }
+    html += '<button onclick="showLeaderboard()" class="close-btn">Закрыть</button>';
+    document.querySelector('#leaderboard-modal .modal-content').innerHTML = html;
 }
 
 // Обновление UI
@@ -115,7 +124,6 @@ function updateDisplay() {
     updateHint('CNY');
 }
 
-// Подсказки
 function updateHint(currency) {
     const input = document.getElementById(`${currency.toLowerCase()}-amount`);
     const hint = document.getElementById(`${currency.toLowerCase()}-hint`);
@@ -172,8 +180,7 @@ function newsImpact() {
 function buy(cur) {
     const amt = parseFloat(document.getElementById(`${cur.toLowerCase()}-amount`).value);
     if (isNaN(amt) || amt <= 0 || amt > balances.USD) return showToast("Ошибка суммы", false);
-    if (cur === 'EUR') balances.EUR += amt / rates.EUR;
-    else balances.CNY += amt / rates.CNY;
+    balances[cur] += amt / rates[cur];
     balances.USD -= amt;
     document.getElementById(`${cur.toLowerCase()}-amount`).value = '';
     updateDisplay();
@@ -206,21 +213,25 @@ function sellAll(cur) {
     showToast(`Всё продано`);
 }
 
-// Модалки
+// Модальные окна
 function toggleAssets() {
     document.getElementById('assets-modal').classList.toggle('hidden');
     updateDisplay();
 }
 
-function showProfit() {
+function showExpectedProfit() {
+    document.getElementById('expected-profit-modal').classList.toggle('hidden');
+}
+
+function showLeaderboard() {
     loadLeaderboard();
-    document.getElementById('profit-modal').classList.toggle('hidden');
+    document.getElementById('leaderboard-modal').classList.toggle('hidden');
 }
 
 // Инициализация
 loadSave();
 updateDisplay();
-updateLeaderboard(); // Отправить начальный баланс
+updateLeaderboard();
 
 setInterval(fluctuateRates, 5000);
 setInterval(newsImpact, 50000);
