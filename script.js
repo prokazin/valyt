@@ -3,8 +3,8 @@ Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
 // Supabase конфиг
-const SUPABASE_URL = 'https://usokyVoBYkVQpiHiM8DPWQ.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_usokyVoBYkVQpiHiM8DPWQ_fHLItYKD';
+const SUPABASE_URL = 'https://cejlpcerpwuepckkngcj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Eum6jPSZnELNF7EaIY6jfQ_TBXk7wY6';
 
 // Пользователь
 const user = Telegram.WebApp.initDataUnsafe.user || null;
