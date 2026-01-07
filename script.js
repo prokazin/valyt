@@ -1,4 +1,3 @@
-// script.js
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
@@ -11,30 +10,11 @@ const user = Telegram.WebApp.initDataUnsafe.user || null;
 const userId = user ? user.id : null;
 const username = user ? (user.username || user.first_name || 'Игрок') : 'Аноним';
 
-// Состояние игры
-let balances = {
-    USD: 100.00,
-    EUR: 0.00,
-    CNY: 0.00
-};
+// Состояние
+let balances = { USD: 100.00, EUR: 0.00, CNY: 0.00 };
+let rates = { EUR: 1.2, CNY: 7.1 };
 
-let rates = {
-    EUR: 1.2,
-    CNY: 7.1
-};
-
-// Новости
-const positiveNews = [
-    "Экономика ЕС растёт быстрее ожиданий!", "ЕЦБ снижает ставки", "Сильные данные по экспорту ЕС",
-    "Китай объявил о стимулах", "Рост ВВП Китая превысил прогноз", "Стабилизация юаня"
-];
-
-const negativeNews = [
-    "Рецессия в еврозоне", "ЕЦБ повышает ставки", "Слабые данные по ВВП ЕС",
-    "Замедление экономики Китая", "Давление на юань", "Торговые ограничения для Китая"
-];
-
-// Локальное сохранение
+// Сохранение
 function loadSave() {
     const saved = localStorage.getItem('currencyTradingSave');
     if (saved) {
@@ -48,7 +28,7 @@ function saveGame() {
     localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
 }
 
-// Обновление лидерборда
+// Лидерборд
 async function updateLeaderboard() {
     if (!userId) return;
     try {
@@ -60,33 +40,21 @@ async function updateLeaderboard() {
                 'Content-Type': 'application/json',
                 'Prefer': 'resolution=merge-duplicates'
             },
-            body: JSON.stringify({
-                user_id: userId,
-                username: username,
-                balance: balances.USD
-            })
+            body: JSON.stringify({ user_id: userId, username, balance: balances.USD })
         });
-    } catch (err) {
-        console.error('Ошибка лидерборда');
-    }
+    } catch (err) {}
 }
 
-// Загрузка лидерборда
 async function loadLeaderboard() {
     try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=balance.desc&limit=10`, {
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-            }
+            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
         });
         if (res.ok) {
             const data = await res.json();
             displayLeaderboard(data);
         }
-    } catch (err) {
-        console.error('Ошибка загрузки рейтинга');
-    }
+    } catch (err) {}
 }
 
 function displayLeaderboard(players) {
@@ -106,7 +74,7 @@ function displayLeaderboard(players) {
     document.querySelector('#leaderboard-modal .modal-content').innerHTML = html;
 }
 
-// Обновление UI
+// UI
 function updateDisplay() {
     document.getElementById('usd-balance').textContent = balances.USD.toFixed(2);
     document.getElementById('eur-rate').textContent = rates.EUR.toFixed(1);
@@ -211,6 +179,8 @@ function sellAll(cur) {
 }
 
 // Ставки с таймером
+let activeBets = [];
+
 function quickBet(currency, direction, minutes) {
     const amount = parseFloat(document.getElementById('bet-amount').value);
     if (isNaN(amount) || amount <= 0 || amount > balances.USD) {
@@ -221,40 +191,46 @@ function quickBet(currency, direction, minutes) {
     balances.USD -= amount;
     const startRate = rates[currency];
 
-    activeBets.push({
+    const bet = {
         currency,
         direction,
         amount,
         startRate,
         endTime: Date.now() + minutes * 60 * 1000
-    });
+    };
+
+    activeBets.push(bet);
 
     updateDisplay();
     saveGame();
     updateLeaderboard();
-    showToast(`Ставка принята! Ожидайте ${minutes} мин...`);
+    showToast(`Ставка ${amount} USD на ${direction === 'up' ? 'рост' : 'падение'} ${currency} (${minutes} мин)`);
     closeBetModal();
 
-    const timerToast = showToast(`Оставшееся время ставки: ${minutes} мин`, true);
+    // Таймер в toast
+    let remaining = minutes;
+    const timerToast = showToast(`Ставка: ${remaining} мин осталось`, true);
     const interval = setInterval(() => {
-        const remaining = Math.ceil((activeBets[0].endTime - Date.now()) / 60000);
-        timerToast.textContent = `Оставшееся время ставки: ${remaining} мин`;
-    }, 60000); // Обновление каждую минуту
+        remaining--;
+        if (remaining > 0) {
+            timerToast.textContent = `Ставка: ${remaining} мин осталось`;
+        } else {
+            clearInterval(interval);
+        }
+    }, 60000);
 
     setTimeout(() => {
         clearInterval(interval);
-        checkBet(currency, direction, amount, startRate);
+        checkBet(bet);
     }, minutes * 60 * 1000);
 }
 
-let activeBets = [];
-
-function checkBet(currency, direction, amount, startRate) {
-    const currentRate = rates[currency];
-    const won = (direction === 'up' && currentRate > startRate) || (direction === 'down' && currentRate < startRate);
+function checkBet(bet) {
+    const currentRate = rates[bet.currency];
+    const won = (bet.direction === 'up' && currentRate > bet.startRate) || (bet.direction === 'down' && currentRate < bet.startRate);
 
     if (won) {
-        const profit = amount * 1.8;
+        const profit = bet.amount * 1.8;
         balances.USD += profit;
         showToast(`Ставка выиграна! +${profit.toFixed(2)} USD 🎉`, true);
     } else {
@@ -266,7 +242,7 @@ function checkBet(currency, direction, amount, startRate) {
     updateLeaderboard();
 }
 
-// Магазин Stars
+// Магазин Stars — 6 вариантов
 function showStarsShop() {
     document.getElementById('stars-shop-modal').classList.toggle('hidden');
 }
@@ -303,8 +279,6 @@ Telegram.WebApp.onEvent('invoice_closed', (payload) => {
         saveGame();
         updateLeaderboard();
         showToast(`+${amount} USD за Stars! ⭐`, true);
-    } else if (payload.status === 'failed') {
-        showToast('Оплата не удалась', false);
     }
 });
 
