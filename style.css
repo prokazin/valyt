@@ -1,71 +1,64 @@
-/* style.css */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: #f2f2f7;
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 .container {
     background-color: rgba(255, 255, 255, 0.18);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-radius: 24px;
-    padding: 20px;
-    width: 90%;
+    padding: 16px;
+    width: 95%;
     max-width: 420px;
+    margin: 10px auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    margin: 20px 0;
+    height: calc(100vh - 20px);
+    display: flex;
+    flex-direction: column;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 h1 {
-    font-size: 26px;
-    font-weight: 700;
-    color: #000;
+    font-size: 24px;
     margin: 0;
 }
 
-.header-buttons {
+.header-icons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.icon-row {
     display: flex;
     gap: 8px;
-    align-items: center;
 }
 
 .icon-button {
     background-color: rgba(255, 255, 255, 0.6);
-    border-radius: 16px;
-    padding: 10px 16px;
-    text-align: center;
-    cursor: pointer;
+    border-radius: 12px;
+    padding: 8px;
+    width: 38px;
+    height: 38px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    min-width: 120px;
+    cursor: pointer;
 }
 
-.icon-button span:first-child {
-    display: block;
-    font-size: 12px;
-    color: #666;
-}
-
-.icon-button span:last-child {
-    font-size: 16px;
-    font-weight: 600;
-    color: #000;
-}
-
-/* Модальное окно активов */
 .modal {
     position: fixed;
     top: 0;
@@ -83,47 +76,36 @@ h1 {
 .modal-content {
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 20px;
-    padding: 24px;
-    text-align: center;
-    width: 80%;
-    max-width: 300px;
+    padding: 20px;
+    width: 90%;
+    max-width: 340px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.modal-content h2 {
-    margin-top: 0;
-}
-
-.modal-content p {
-    font-size: 18px;
-    margin: 12px 0;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .close-btn {
-    margin-top: 20px;
     background-color: #007aff;
     color: white;
     border: none;
     border-radius: 12px;
-    padding: 12px 24px;
+    padding: 10px 20px;
     font-size: 16px;
+    margin-top: 16px;
 }
 
-/* Toast уведомление */
 .toast {
     position: fixed;
-    top: 100px;
+    top: 80px;
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 14px 24px;
+    padding: 12px 20px;
     border-radius: 12px;
     font-size: 15px;
-    font-weight: 500;
     z-index: 200;
     max-width: 90%;
-    text-align: center;
     opacity: 0;
     transition: opacity 0.3s;
 }
@@ -136,18 +118,18 @@ h1 {
     display: none;
 }
 
-/* Карточки валют */
 .trading-section {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+    overflow: hidden;
 }
 
 .currency-card {
     background-color: rgba(255, 255, 255, 0.45);
-    border-radius: 18px;
-    padding: 18px;
-    text-align: center;
+    border-radius: 16px;
+    padding: 14px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
@@ -156,53 +138,51 @@ h1 {
 }
 
 .currency-card h3 {
-    font-size: 24px;
-    margin: 0 0 8px;
-    color: #000;
+    font-size: 22px;
+    margin: 0 0 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .currency-emoji {
-    font-size: 28px;
+    font-size: 26px;
 }
 
 .rate {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 8px 0;
+    font-size: 15px;
+    margin: 4px 0;
     color: #333;
 }
 
 .balance {
-    font-size: 15px;
-    color: #666;
+    font-size: 18px;
+    font-weight: 600;
     margin: 8px 0;
 }
 
 .currency-card input {
-    width: 85%;
-    padding: 12px;
-    margin: 12px 0;
-    border-radius: 12px;
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, 0.1);
     background-color: rgba(255, 255, 255, 0.8);
-    font-size: 16px;
+    font-size: 15px;
     text-align: center;
 }
 
-.currency-card #eur-hint, .currency-card #cny-hint {
-    font-size: 14px;
+.hint {
+    font-size: 13px;
     color: #666;
-    margin: 4px 0 12px;
+    min-height: 18px;
+    margin: 4px 0;
 }
 
 .buttons {
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    gap: 6px;
 }
 
 .currency-card button {
@@ -210,21 +190,72 @@ h1 {
     background-color: #007aff;
     color: white;
     border: none;
-    border-radius: 12px;
-    padding: 12px;
-    font-size: 16px;
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 14px;
     font-weight: 600;
-    cursor: pointer;
 }
 
-.currency-card button:active {
+/* Ставки */
+.bet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.bet-tile {
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 14px;
+    padding: 12px;
+}
+
+.bet-tile h3 {
+    margin: 0 0 10px;
+    font-size: 17px;
+}
+
+.bet-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.bet-btn {
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.bet-btn.up {
+    background-color: #28a745;
+    color: white;
+}
+
+.bet-btn.down {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Магазин Stars */
+.stars-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.stars-btn {
+    background-color: #ffcc00;
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.stars-btn:active {
     opacity: 0.8;
-}
-
-@media (max-width: 600px) {
-    .container {
-        width: 95%;
-        padding: 16px;
-        margin: 10px 0;
-    }
 }
