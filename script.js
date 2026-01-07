@@ -2,7 +2,7 @@
 Telegram.WebApp.ready();
 Telegram.WebApp.expand();
 
-// Supabase (твой проект)
+// Supabase
 const SUPABASE_URL = 'https://cejlpcerpwuepckkngcj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Eum6jPSZnELNF7EaIY6jfQ_TBXk7wY6';
 
@@ -48,10 +48,9 @@ function saveGame() {
     localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
 }
 
-// Обновление лидерборда в Supabase
+// Обновление лидерборда
 async function updateLeaderboard() {
     if (!userId) return;
-
     try {
         await fetch(`${SUPABASE_URL}/rest/v1/leaderboard`, {
             method: 'POST',
@@ -68,11 +67,11 @@ async function updateLeaderboard() {
             })
         });
     } catch (err) {
-        console.error('Ошибка отправки в лидерборд');
+        console.error('Ошибка лидерборда');
     }
 }
 
-// Загрузка топ-10
+// Загрузка лидерборда
 async function loadLeaderboard() {
     try {
         const res = await fetch(`${SUPABASE_URL}/rest/v1/leaderboard?order=balance.desc&limit=10`, {
@@ -81,7 +80,6 @@ async function loadLeaderboard() {
                 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
             }
         });
-
         if (res.ok) {
             const data = await res.json();
             displayLeaderboard(data);
@@ -136,7 +134,7 @@ function updateHint(currency) {
     hint.textContent = `Купите ${qty} ${currency} | Продайте ${qty} ${currency}`;
 }
 
-// Toast уведомление
+// Toast
 function showToast(msg, positive = true) {
     const toast = document.getElementById('toast');
     toast.textContent = msg;
@@ -162,8 +160,7 @@ function fluctuateRates() {
 
 function newsImpact() {
     const positive = Math.random() < 0.5;
-    const newsArr = positive ? positiveNews : negativeNews;
-    const news = newsArr[Math.floor(Math.random() * newsArr.length)];
+    const news = (positive ? positiveNews : negativeNews)[Math.floor(Math.random() * positiveNews.length)];
     const effEUR = positive ? (Math.random() * 0.6 + 0.2) : -(Math.random() * 0.6 + 0.2);
     const effCNY = positive ? (Math.random() * 12 + 4) : -(Math.random() * 12 + 4);
     rates.EUR += effEUR;
@@ -213,7 +210,7 @@ function sellAll(cur) {
     showToast(`Всё продано`);
 }
 
-// Быстрые ставки
+// Ставки с таймером
 function quickBet(currency, direction, minutes) {
     const amount = parseFloat(document.getElementById('bet-amount').value);
     if (isNaN(amount) || amount <= 0 || amount > balances.USD) {
@@ -235,10 +232,19 @@ function quickBet(currency, direction, minutes) {
     updateDisplay();
     saveGame();
     updateLeaderboard();
-    showToast(`Ставка ${amount} USD на ${direction === 'up' ? 'рост' : 'падение'} ${currency} (${minutes} мин)`);
+    showToast(`Ставка принята! Ожидайте ${minutes} мин...`);
     closeBetModal();
 
-    setTimeout(() => checkBet(currency, direction, amount, startRate), minutes * 60 * 1000);
+    const timerToast = showToast(`Оставшееся время ставки: ${minutes} мин`, true);
+    const interval = setInterval(() => {
+        const remaining = Math.ceil((activeBets[0].endTime - Date.now()) / 60000);
+        timerToast.textContent = `Оставшееся время ставки: ${remaining} мин`;
+    }, 60000); // Обновление каждую минуту
+
+    setTimeout(() => {
+        clearInterval(interval);
+        checkBet(currency, direction, amount, startRate);
+    }, minutes * 60 * 1000);
 }
 
 let activeBets = [];
@@ -260,11 +266,15 @@ function checkBet(currency, direction, amount, startRate) {
     updateLeaderboard();
 }
 
-// Покупка за Telegram Stars (полностью рабочая)
-function buyStarsBonus() {
+// Магазин Stars
+function showStarsShop() {
+    document.getElementById('stars-shop-modal').classList.toggle('hidden');
+}
+
+function buyStarsBonus(usdAmount, starsAmount) {
     Telegram.WebApp.showPopup({
-        title: "Бонус за Stars",
-        message: "Купить 1000 USD за 100 ⭐ Stars?",
+        title: "Покупка бонуса",
+        message: `Купить ${usdAmount} USD за ${starsAmount} ⭐ Stars?`,
         buttons: [
             { type: 'ok', text: 'Купить' },
             { type: 'cancel', text: 'Отмена' }
@@ -273,28 +283,28 @@ function buyStarsBonus() {
         if (button === 'ok') {
             const invoice = {
                 title: 'Бонус в трейдинге',
-                description: '+1000 USD в игре',
-                payload: 'bonus_usd_1000',
+                description: `+${usdAmount} USD в игре`,
+                payload: `bonus_usd_${usdAmount}`,
                 provider_token: '',
                 currency: 'XTR',
-                prices: [{ label: 'Бонус 1000 USD', amount: 10000 }] // 100 Stars
+                prices: [{ label: `Бонус ${usdAmount} USD`, amount: starsAmount * 100 }]
             };
-
             Telegram.WebApp.sendInvoice(invoice);
         }
     });
 }
 
-// Обработка оплаты Stars
+// Обработка оплаты
 Telegram.WebApp.onEvent('invoice_closed', (payload) => {
-    if (payload.status === 'paid' && payload.payload === 'bonus_usd_1000') {
-        balances.USD += 1000;
+    if (payload.status === 'paid') {
+        const amount = parseInt(payload.payload.split('_')[2]);
+        balances.USD += amount;
         updateDisplay();
         saveGame();
         updateLeaderboard();
-        showToast('+1000 USD за Stars! ⭐', true);
-    } else if (payload.status === 'failed' || payload.status === 'cancelled') {
-        showToast('Оплата отменена или не удалась', false);
+        showToast(`+${amount} USD за Stars! ⭐`, true);
+    } else if (payload.status === 'failed') {
+        showToast('Оплата не удалась', false);
     }
 });
 
