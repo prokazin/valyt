@@ -13,28 +13,19 @@
         <header>
             <h1>Трейдинг валют</h1>
             <div class="header-buttons">
-                <!-- Кошелёк -->
-                <div class="icon-button animate" onclick="toggleAssets()" title="Активы">
+                <div class="icon-button" onclick="toggleAssets()" title="Активы">
                     💼
                 </div>
-                
-                <!-- Ожидаемая прибыль -->
-                <div class="icon-button animate pulse" onclick="showExpectedProfit()" title="Ожидаемая прибыль">
+                <div class="icon-button pulse" onclick="showExpectedProfit()" title="Ожидаемая прибыль">
                     📈
                 </div>
-                
-                <!-- Рейтинг -->
-                <div class="icon-button animate" onclick="showLeaderboard()" title="Рейтинг игроков">
+                <div class="icon-button" onclick="showLeaderboard()" title="Рейтинг игроков">
                     🏆
                 </div>
-                
-                <!-- Ставка на курс -->
-                <div class="icon-button animate" onclick="openBetModal()" title="Сделать ставку">
+                <div class="icon-button" onclick="openBetModal()" title="Сделать ставку">
                     🎲
                 </div>
-                
-                <!-- Покупка за Stars -->
-                <div class="icon-button animate" onclick="buyStarsBonus()" title="Купить USD за Stars">
+                <div class="icon-button" onclick="buyStarsBonus()" title="Купить USD за Stars">
                     ⭐
                 </div>
             </div>
@@ -61,17 +52,16 @@
 
         <div id="leaderboard-modal" class="modal hidden">
             <div class="modal-content">
-                <!-- Рейтинг загружается сюда -->
+                <!-- Рейтинг -->
             </div>
         </div>
 
-        <!-- Модалка ставок (обновлённый дизайн с плитками) -->
+        <!-- Модалка ставок (плитки) -->
         <div id="bet-modal" class="modal hidden">
             <div class="modal-content bet-content">
                 <h2>Сделать ставку</h2>
                 
                 <div class="bet-grid">
-                    <!-- EUR -->
                     <div class="bet-tile">
                         <h3>💶 EUR</h3>
                         <div class="bet-options">
@@ -82,7 +72,6 @@
                         </div>
                     </div>
 
-                    <!-- CNY -->
                     <div class="bet-tile">
                         <h3>💴 CNY</h3>
                         <div class="bet-options">
