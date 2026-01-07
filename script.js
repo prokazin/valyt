@@ -14,7 +14,7 @@ let rates = {
     CNY: 7.1
 };
 
-// Загрузка сохранения
+// Загрузка/сохранение
 function loadSave() {
     const saved = localStorage.getItem('currencyTradingSave');
     if (saved) {
@@ -24,7 +24,6 @@ function loadSave() {
     }
 }
 
-// Сохранение
 function saveGame() {
     localStorage.setItem('currencyTradingSave', JSON.stringify({ balances, rates }));
 }
@@ -32,16 +31,12 @@ function saveGame() {
 // Новости
 const positiveNews = [
     "Экономика ЕС растёт быстрее ожиданий!", "ЕЦБ снижает ставки", "Сильные данные по экспорту ЕС",
-    "Китай объявил о стимулах", "Рост ВВП Китая превысил прогноз", "Стабилизация юаня",
-    "Торговое соглашение США-ЕС", "Рекордные инвестиции в еврозону", "Снижение инфляции в Китае",
-    "Бум экспорта из Китая", "Положительные данные по занятости в ЕС", "Стабильность юаня"
+    "Китай объявил о стимулах", "Рост ВВП Китая превысил прогноз", "Стабилизация юаня"
 ];
 
 const negativeNews = [
     "Рецессия в еврозоне", "ЕЦБ повышает ставки", "Слабые данные по ВВП ЕС",
-    "Замедление экономики Китая", "Давление на юань", "Торговые ограничения для Китая",
-    "Инфляция в ЕС вышла из-под контроля", "Отток капитала из Китая", "Политическая нестабильность в ЕС",
-    "Снижение экспорта Китая", "Кризис на рынке недвижимости Китая", "Геополитическая напряжённость"
+    "Замедление экономики Китая", "Давление на юань", "Торговые ограничения для Китая"
 ];
 
 // Обновление отображения
@@ -51,7 +46,6 @@ function updateDisplay() {
     document.getElementById('cny-rate').textContent = rates.CNY.toFixed(1);
     document.getElementById('eur-balance').textContent = balances.EUR.toFixed(2);
     document.getElementById('cny-balance').textContent = balances.CNY.toFixed(2);
-    document.getElementById('total-usd').textContent = `${balances.USD.toFixed(2)} USD`;
 
     document.getElementById('modal-usd').textContent = balances.USD.toFixed(2);
     document.getElementById('modal-eur').textContent = balances.EUR.toFixed(2);
@@ -61,7 +55,7 @@ function updateDisplay() {
     updateHint('CNY');
 }
 
-// Обновление подсказки
+// Подсказки
 function updateHint(currency) {
     const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
     const hint = document.getElementById(`${currency.toLowerCase()}-hint`);
@@ -72,23 +66,17 @@ function updateHint(currency) {
         return;
     }
 
-    let buyText, sellText;
+    let qty;
     if (currency === 'EUR') {
-        const buyEur = (amount / rates.EUR).toFixed(2);
-        const sellEur = (amount / rates.EUR).toFixed(2);
-        buyText = `Купите ${buyEur} EUR`;
-        sellText = `Продайте ${sellEur} EUR`;
+        qty = (amount / rates.EUR).toFixed(2);
     } else if (currency === 'CNY') {
-        const buyCny = (amount / rates.CNY).toFixed(2);
-        const sellCny = (amount / rates.CNY).toFixed(2);
-        buyText = `Купите ${buyCny} CNY`;
-        sellText = `Продайте ${sellCny} CNY`;
+        qty = (amount / rates.CNY).toFixed(2);
     }
 
-    hint.textContent = `${buyText} | ${sellText}`;
+    hint.textContent = `Купите ${qty} ${currency} | Продайте ${qty} ${currency}`;
 }
 
-// Показ уведомления на 4 секунды
+// Toast
 function showToast(message, isPositive = true) {
     const toast = document.getElementById('toast');
     toast.textContent = message;
@@ -102,49 +90,44 @@ function showToast(message, isPositive = true) {
     }, 4000);
 }
 
-// Случайные флуктуации (постоянно, каждые 5 сек)
+// Сбалансированные сильные колебания (рост и падение равновероятны)
 function fluctuateRates() {
-    const noiseEUR = Math.random() * 0.8 - 0.2; // Чаще рост
-    const noiseCNY = Math.random() * 8.0 - 2.0; // Чаще рост
+    // EUR: симметричные изменения ±0.05–0.25
+    const changeEUR = (Math.random() - 0.5) * 0.4;
+    rates.EUR += changeEUR;
 
-    rates.EUR += noiseEUR;
-    rates.CNY += noiseCNY;
+    // CNY: симметричные изменения ±1.0–5.0
+    const changeCNY = (Math.random() - 0.5) * 8.0;
+    rates.CNY += changeCNY;
 
-    rates.EUR = Math.max(0.1, rates.EUR);
-    rates.CNY = Math.max(1.0, rates.CNY);
+    rates.EUR = Math.max(0.5, rates.EUR);
+    rates.CNY = Math.max(3.0, rates.CNY);
 
     updateDisplay();
     saveGame();
 }
 
-// Новости (раз в 50 сек)
+// Новости: 50/50 положительные/отрицательные с сильным влиянием
 function newsImpact() {
-    const rand = Math.random();
-    let news, affectEUR = 0, affectCNY = 0, isPositive = true;
+    const isPositive = Math.random() < 0.5;
+    const newsArray = isPositive ? positiveNews : negativeNews;
+    const news = newsArray[Math.floor(Math.random() * newsArray.length)];
 
-    if (rand < 0.6) { // Чаще положительные
-        news = positiveNews[Math.floor(Math.random() * positiveNews.length)];
-        affectEUR = Math.random() * 2.0 + 0.5;
-        affectCNY = Math.random() * 20.0 + 5.0;
-    } else {
-        news = negativeNews[Math.floor(Math.random() * negativeNews.length)];
-        affectEUR = - (Math.random() * 1.0 + 0.5);
-        affectCNY = - (Math.random() * 10.0 + 2.0);
-        isPositive = false;
-    }
+    const affectEUR = isPositive ? (Math.random() * 0.6 + 0.2) : -(Math.random() * 0.6 + 0.2);
+    const affectCNY = isPositive ? (Math.random() * 12.0 + 4.0) : -(Math.random() * 12.0 + 4.0);
 
     rates.EUR += affectEUR;
     rates.CNY += affectCNY;
 
-    rates.EUR = Math.max(0.1, rates.EUR);
-    rates.CNY = Math.max(1.0, rates.CNY);
+    rates.EUR = Math.max(0.5, rates.EUR);
+    rates.CNY = Math.max(3.0, rates.CNY);
 
     showToast(news, isPositive);
     updateDisplay();
     saveGame();
 }
 
-// Покупка
+// Покупка/продажа/продажа всего
 function buy(currency) {
     const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
     const amount = parseFloat(amountInput.value);
@@ -156,11 +139,10 @@ function buy(currency) {
 
     if (currency === 'EUR') {
         balances.EUR += amount / rates.EUR;
-        balances.USD -= amount;
     } else if (currency === 'CNY') {
         balances.CNY += amount / rates.CNY;
-        balances.USD -= amount;
     }
+    balances.USD -= amount;
 
     amountInput.value = '';
     updateDisplay();
@@ -168,7 +150,6 @@ function buy(currency) {
     showToast(`Куплено ${currency} на ${amount.toFixed(2)} USD`);
 }
 
-// Продажа
 function sell(currency) {
     const amountInput = document.getElementById(`${currency.toLowerCase()}-amount`);
     const amount = parseFloat(amountInput.value);
@@ -178,24 +159,14 @@ function sell(currency) {
         return;
     }
 
-    let toSell;
-    if (currency === 'EUR') {
-        toSell = amount / rates.EUR;
-        if (toSell > balances.EUR) {
-            showToast("Недостаточно EUR", false);
-            return;
-        }
-        balances.EUR -= toSell;
-        balances.USD += amount;
-    } else if (currency === 'CNY') {
-        toSell = amount / rates.CNY;
-        if (toSell > balances.CNY) {
-            showToast("Недостаточно CNY", false);
-            return;
-        }
-        balances.CNY -= toSell;
-        balances.USD += amount;
+    const toSell = amount / rates[currency];
+    if (toSell > balances[currency]) {
+        showToast(`Недостаточно ${currency}`, false);
+        return;
     }
+
+    balances[currency] -= toSell;
+    balances.USD += amount;
 
     amountInput.value = '';
     updateDisplay();
@@ -203,15 +174,13 @@ function sell(currency) {
     showToast(`Продано ${currency} за ${amount.toFixed(2)} USD`);
 }
 
-// Продать все
 function sellAll(currency) {
     if (balances[currency] <= 0) {
         showToast(`Нет ${currency} для продажи`, false);
         return;
     }
 
-    let usdGain = balances[currency] * rates[currency];
-
+    const usdGain = balances[currency] * rates[currency];
     balances.USD += usdGain;
     balances[currency] = 0;
 
@@ -220,29 +189,23 @@ function sellAll(currency) {
     showToast(`Продана вся ${currency} за ${usdGain.toFixed(2)} USD`);
 }
 
-// Модальное окно активов
+// Модальные окна
 function toggleAssets() {
-    const modal = document.getElementById('assets-modal');
-    modal.classList.toggle('hidden');
+    document.getElementById('assets-modal').classList.toggle('hidden');
     updateDisplay();
 }
 
-// Окно прибыли
 function showProfit() {
-    const modal = document.getElementById('profit-modal');
-    modal.classList.toggle('hidden');
+    document.getElementById('profit-modal').classList.toggle('hidden');
 }
 
 // Инициализация
 loadSave();
 updateDisplay();
 
-// Постоянные флуктуации каждые 5 сек
+// Колебания каждые 5 сек, новости каждые 50 сек
 setInterval(fluctuateRates, 5000);
-
-// Новости каждые 50 сек
 setInterval(newsImpact, 50000);
 
-// Первая флуктуация и новость
 setTimeout(fluctuateRates, 3000);
 setTimeout(newsImpact, 5000);
