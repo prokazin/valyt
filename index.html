@@ -12,9 +12,13 @@
     <div class="container">
         <header>
             <h1>Трейдинг валют</h1>
-            <div class="wallet-button" onclick="toggleAssets()">
-                <span>Кошелёк</span>
-                <span id="total-usd">100.00 USD</span>
+            <div class="header-buttons">
+                <div class="icon-button" onclick="toggleAssets()" title="Кошелёк">
+                    💼 <span id="total-usd">100.00 USD</span>
+                </div>
+                <div class="icon-button chart" onclick="showProfit()" title="График прибыли">
+                    📈
+                </div>
             </div>
         </header>
 
@@ -29,20 +33,29 @@
             </div>
         </div>
 
+        <!-- Окно прибыли -->
+        <div id="profit-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Ожидаемая прибыль</h2>
+                <p style="font-size: 18px; margin: 20px 0;">Ожидаем прибыль…</p>
+                <button onclick="showProfit()" class="close-btn">Закрыть</button>
+            </div>
+        </div>
+
         <!-- Уведомление (toast) -->
         <div id="toast" class="toast hidden"></div>
 
         <div class="trading-section">
             <!-- Блок USD (база) -->
             <div class="currency-card base">
-                <h3><span class="currency-emoji" data-currency="USD">💵</span> USD</h3>
+                <h3><span class="currency-emoji">💵</span> USD</h3>
                 <p class="rate">Курс: 1.0 USD</p>
                 <p class="balance">Баланс: <span id="usd-balance">100.00</span></p>
             </div>
 
             <!-- Блок EUR -->
             <div class="currency-card">
-                <h3><span class="currency-emoji" data-currency="EUR">💶</span> EUR</h3>
+                <h3><span class="currency-emoji">💶</span> EUR</h3>
                 <p class="rate">Курс: <span id="eur-rate">1.2</span> USD</p>
                 <p class="balance">Баланс: <span id="eur-balance">0.00</span></p>
                 <input type="number" id="eur-amount" placeholder="Сумма в USD" oninput="updateHint('EUR')">
@@ -56,7 +69,7 @@
 
             <!-- Блок CNY -->
             <div class="currency-card">
-                <h3><span class="currency-emoji" data-currency="CNY">💴</span> CNY</h3>
+                <h3><span class="currency-emoji">💴</span> CNY</h3>
                 <p class="rate">Курс: <span id="cny-rate">7.1</span> USD</p>
                 <p class="balance">Баланс: <span id="cny-balance">0.00</span></p>
                 <input type="number" id="cny-amount" placeholder="Сумма в USD" oninput="updateHint('CNY')">
